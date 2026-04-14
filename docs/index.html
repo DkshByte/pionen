@@ -300,9 +300,8 @@
     #hero {
       min-height: 100vh;
       display: flex; align-items: center;
-      padding: 160px 0 80px;
       position: relative;
-      /* No overflow:hidden — it was clipping the phone mockup */
+      /* padding handled by .hero-split */
     }
 
     /* Deep parallax layers inside hero */
@@ -463,8 +462,161 @@
     .pin-dot.f { background: var(--green); border-color: var(--green); box-shadow: 0 0 6px var(--green); }
 
     /* ═══════════════════════════════════════════════════════ */
+    /* HERO SPLIT LAYOUT                                      */
+    /* ═══════════════════════════════════════════════════════ */
+    .hero-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 60px;
+      width: 100%;
+      min-height: 100vh;
+      padding: 90px 0 60px; /* 90px = nav height + breathing room */
+    }
+
+    @media (max-width: 900px) {
+      .hero-split {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 120px 0 60px;
+      }
+      .hero-btns { justify-content: center; }
+      .hero-sub { margin: 0 auto 48px; }
+    }
+
+    .hero-text-col { position: relative; z-index: 2; }
+
+    /* ── Big floating phone ─────────────────────────────── */
+    .hero-phone-col {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .hero-phone-aura {
+      position: absolute;
+      width: 380px; height: 380px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,255,136,0.1) 0%, transparent 68%);
+      animation: hpa 4s ease-in-out infinite;
+    }
+
+    @keyframes hpa {
+      0%,100% { transform: scale(1);   opacity: 0.7; }
+      50%      { transform: scale(1.2); opacity: 1;   }
+    }
+
+    .hero-big-phone {
+      width: 230px; height: 470px;
+      background: rgba(0,255,136,0.025);
+      border: 1.5px solid rgba(0,255,136,0.18);
+      border-radius: 40px;
+      position: relative; overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(0,255,136,0.06),
+        0 0 60px rgba(0,255,136,0.15),
+        0 50px 80px rgba(0,0,0,0.8),
+        inset 0 1px 0 rgba(0,255,136,0.12);
+      animation: phoneFloat 6s ease-in-out infinite;
+    }
+
+    @keyframes phoneFloat {
+      0%,100% { transform: translateY(0px)   rotate(0deg);   }
+      33%      { transform: translateY(-14px) rotate(0.6deg); }
+      66%      { transform: translateY(-8px)  rotate(-0.4deg);}
+    }
+
+    .hbp-notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 76px; height: 6px;
+      background: rgba(0,255,136,0.18);
+      border-radius: 0 0 5px 5px; z-index: 3;
+    }
+
+    .hbp-status {
+      position: absolute; top: 14px; left: 0; right: 0;
+      display: flex; justify-content: space-between;
+      padding: 0 18px; z-index: 3;
+      font-family: var(--mono); font-size: 8px;
+      color: rgba(0,255,136,0.35); letter-spacing: 0.05em;
+    }
+
+    .hbp-screen {
+      position: absolute; inset: 11px;
+      background: #000;
+      border-radius: 30px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 14px; padding: 20px;
+      border: 1px solid rgba(0,255,136,0.05);
+      overflow: hidden;
+    }
+
+    .hbp-lock-ring {
+      width: 72px; height: 72px; border-radius: 50%;
+      border: 1.5px solid rgba(0,255,136,0.3);
+      background: rgba(0,255,136,0.04);
+      display: grid; place-items: center;
+      animation: hbpPulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes hbpPulse {
+      0%,100% { box-shadow: 0 0 16px rgba(0,255,136,0.15); }
+      50%      { box-shadow: 0 0 36px rgba(0,255,136,0.45); }
+    }
+
+    .hbp-label {
+      font-family: var(--mono);
+      font-size: 8px; letter-spacing: 0.2em;
+      text-transform: uppercase; color: rgba(0,255,136,0.45);
+    }
+
+    .hbp-pin { display: flex; gap: 8px; }
+
+    .hbp-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      border: 1.5px solid rgba(0,255,136,0.28);
+    }
+
+    .hbp-dot.on {
+      background: #00ff88;
+      border-color: #00ff88;
+      box-shadow: 0 0 7px #00ff88;
+    }
+
+    .hbp-chips {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      justify-content: center; margin-top: 4px;
+    }
+
+    .hbp-chip {
+      font-family: var(--mono); font-size: 8px;
+      letter-spacing: 0.08em; padding: 3px 8px;
+      background: rgba(0,255,136,0.05);
+      border: 1px solid rgba(0,255,136,0.12);
+      border-radius: 3px; color: rgba(0,255,136,0.6);
+    }
+
+    /* CRT scanline sweep */
+    .hbp-scanline {
+      position: absolute; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, rgba(0,255,136,0.2) 50%, transparent 100%);
+      animation: hbpScan 3s linear infinite;
+    }
+
+    @keyframes hbpScan {
+      0%  { top: 10%; }
+      100%{ top: 90%; }
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
     /* STATS                                                   */
     /* ═══════════════════════════════════════════════════════ */
+
     .stats {
       padding: 0 0 100px;
     }
@@ -736,9 +888,339 @@
       font-family: var(--mono); font-size: 11px;
       color: var(--gray); letter-spacing: 0.04em;
     }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* INTRO CINEMATIC                                         */
+    /* ═══════════════════════════════════════════════════════ */
+    body.intro-active { overflow: hidden; }
+
+    #intro {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #000;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 32px;
+    }
+
+    #intro.fade-out {
+      animation: introFadeOut 0.9s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+
+    @keyframes introFadeOut {
+      0%   { opacity:1; transform: translateY(0); }
+      100% { opacity:0; transform: translateY(-60px); }
+    }
+
+    .intro-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px; letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(0,255,136,0.4);
+      animation: iUp 0.6s ease 0.2s both;
+    }
+
+    /* ── Intro phone ─────────────────────────────── */
+    .intro-phone-wrap {
+      position: relative;
+      animation: iPhoneIn 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
+    }
+
+    @keyframes iPhoneIn {
+      from { transform: scale(0.04) translateY(120px); opacity:0; }
+      to   { transform: scale(1); opacity:1; }
+    }
+
+    .intro-phone-wrap.shrink {
+      animation: iPhoneShrink 1s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+
+    @keyframes iPhoneShrink {
+      0%   { transform: scale(1);    opacity:1; }
+      70%  { transform: scale(0.5) translateY(40px); opacity:0.6; }
+      100% { transform: scale(0.3) translateY(80px); opacity:0; }
+    }
+
+    .i-aura {
+      position: absolute; top:50%; left:50%;
+      transform: translate(-50%,-50%);
+      width: 360px; height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,255,136,0.1) 0%, transparent 70%);
+      animation: iAura 3s ease-in-out infinite;
+    }
+
+    @keyframes iAura {
+      0%,100% { transform: translate(-50%,-50%) scale(1); opacity:0.7; }
+      50%     { transform: translate(-50%,-50%) scale(1.25); opacity:1; }
+    }
+
+    .i-phone {
+      width: 250px; height: 490px;
+      background: rgba(0,255,136,0.02);
+      border: 1.5px solid rgba(0,255,136,0.18);
+      border-radius: 42px;
+      position: relative; overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(0,255,136,0.06),
+        0 0 80px rgba(0,255,136,0.18),
+        0 60px 100px rgba(0,0,0,0.95),
+        inset 0 1px 0 rgba(0,255,136,0.12);
+    }
+
+    .i-notch {
+      position: absolute; top:0; left:50%;
+      transform: translateX(-50%);
+      width: 88px; height: 7px;
+      background: rgba(0,255,136,0.18);
+      border-radius: 0 0 6px 6px;
+      z-index: 2;
+    }
+
+    .i-statusbar {
+      position: absolute; top: 14px; left: 0; right: 0;
+      display: flex; justify-content: space-between;
+      padding: 0 20px; z-index: 2;
+      font-family: var(--mono); font-size: 8px;
+      color: rgba(0,255,136,0.3); letter-spacing: 0.05em;
+    }
+
+    .i-screen {
+      position: absolute; inset: 12px;
+      background: #000;
+      border-radius: 32px;
+      overflow: hidden;
+      border: 1px solid rgba(0,255,136,0.05);
+    }
+
+    /* ── Stages ──────────────────────────────────── */
+    .istage {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 18px; padding: 24px;
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      pointer-events: none;
+    }
+
+    .istage.on  { opacity: 1; transform: scale(1); }
+    .istage.out { opacity: 0; transform: scale(1.06); }
+
+    /* Lock ring */
+    .i-lock-ring {
+      width: 84px; height: 84px; border-radius: 50%;
+      border: 1.5px solid rgba(0,255,136,0.3);
+      background: rgba(0,255,136,0.04);
+      display: grid; place-items: center;
+      box-shadow: 0 0 28px rgba(0,255,136,0.2);
+      animation: iLockPulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes iLockPulse {
+      0%,100% { box-shadow: 0 0 18px rgba(0,255,136,0.15); }
+      50%     { box-shadow: 0 0 42px rgba(0,255,136,0.45); }
+    }
+
+    /* Unlock ring */
+    .i-unlock-ring {
+      width: 84px; height: 84px; border-radius: 50%;
+      border: 2px solid #00ff88;
+      background: rgba(0,255,136,0.07);
+      display: grid; place-items: center;
+      animation: iUnlockBurst 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+      box-shadow: 0 0 60px rgba(0,255,136,0.55), inset 0 0 30px rgba(0,255,136,0.1);
+    }
+
+    @keyframes iUnlockBurst {
+      0%  { transform: scale(0.2); opacity:0; }
+      60% { transform: scale(1.18); }
+      100%{ transform: scale(1); opacity:1; }
+    }
+
+    /* Bio ring */
+    .i-bio-wrap {
+      position: relative; width: 90px; height: 90px;
+    }
+
+    /* Only the progress ring SVG — NOT the fingerprint inside .i-bio-center */
+    .i-bio-wrap > svg {
+      position: absolute; inset: 0;
+      transform: rotate(-90deg);
+    }
+
+    .i-bio-center {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Fingerprint SVG inside center: no rotation, no absolute positioning */
+    .i-bio-center svg {
+      position: static;
+      transform: none;
+    }
+
+    .bio-track { stroke: rgba(0,255,136,0.1); stroke-width: 2.5; fill: none; }
+    .bio-fill  {
+      stroke: #00ff88; stroke-width: 2.5; fill: none;
+      stroke-linecap: round;
+      stroke-dasharray: 251;
+      stroke-dashoffset: 251;
+      filter: drop-shadow(0 0 4px #00ff88);
+    }
+
+    #is2.on .bio-fill {
+      animation: iBioFill 1.0s ease 0.1s forwards;
+    }
+
+    @keyframes iBioFill { to { stroke-dashoffset: 0; } }
+
+    /* PIN dots */
+    .i-dots { display: flex; gap: 10px; }
+
+    .i-dot {
+      width: 11px; height: 11px; border-radius: 50%;
+      border: 1.5px solid rgba(0,255,136,0.3);
+      transition: all 0.15s ease;
+    }
+
+    .i-dot.lit {
+      background: #00ff88;
+      border-color: #00ff88;
+      box-shadow: 0 0 8px #00ff88;
+      animation: iDotPop 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    @keyframes iDotPop {
+      0%  { transform: scale(0.4); }
+      60% { transform: scale(1.4); }
+      100%{ transform: scale(1); }
+    }
+
+    /* Labels */
+    .i-label {
+      font-family: var(--mono);
+      font-size: 10px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: rgba(0,255,136,0.5);
+    }
+
+    .i-label.success {
+      color: #00ff88;
+      text-shadow: 0 0 14px rgba(0,255,136,0.7);
+      animation: iLabelPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    @keyframes iLabelPop {
+      0%  { transform: scale(0.7); }
+      60% { transform: scale(1.1); }
+      100%{ transform: scale(1); }
+    }
+
+    /* Status text below phone */
+    .intro-status {
+      font-family: var(--mono);
+      font-size: 11px; letter-spacing: 0.12em;
+      color: rgba(0,255,136,0.35);
+      text-transform: uppercase;
+      min-height: 16px;
+      transition: opacity 0.3s;
+      animation: iUp 0.5s ease 0.8s both;
+    }
+
+    /* Skip */
+    .intro-skip {
+      position: fixed; bottom: 28px; right: 28px;
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(0,255,136,0.28);
+      cursor: pointer; z-index: 10000;
+      transition: color 0.2s;
+      animation: iUp 0.5s ease 1.2s both;
+      user-select: none;
+    }
+    .intro-skip:hover { color: rgba(0,255,136,0.6); }
+
+    @keyframes iUp {
+      from { opacity:0; transform: translateY(14px); }
+      to   { opacity:1; transform: none; }
+    }
   </style>
 </head>
-<body>
+<body class="intro-active">
+
+  <!-- ── CINEMATIC INTRO ──────────────────────────────────── -->
+  <div id="intro">
+    <div class="intro-eyebrow">Pionen · Secure Vault · v1.0.0</div>
+
+    <div class="intro-phone-wrap" id="intro-phone-wrap">
+      <div class="i-aura"></div>
+      <div class="i-phone">
+        <div class="i-notch"></div>
+        <div class="i-statusbar">
+          <span>9:41</span><span>●●●● 100%</span>
+        </div>
+        <div class="i-screen">
+
+          <!-- Stage 1: LOCKED -->
+          <div class="istage on" id="is1">
+            <div class="i-lock-ring">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <div class="i-label">VAULT LOCKED</div>
+            <div class="i-dots">
+              <div class="i-dot"></div><div class="i-dot"></div><div class="i-dot"></div>
+              <div class="i-dot"></div><div class="i-dot"></div><div class="i-dot"></div>
+            </div>
+          </div>
+
+          <!-- Stage 2: BIOMETRIC -->
+          <div class="istage" id="is2">
+            <div class="i-bio-wrap">
+              <svg width="90" height="90" viewBox="0 0 90 90">
+                <circle class="bio-track" cx="45" cy="45" r="40"/>
+                <circle class="bio-fill" cx="45" cy="45" r="40"/>
+              </svg>
+              <div class="i-bio-center">
+                <img src="fingerprint.svg" width="36" height="36"
+                     alt="fingerprint"
+                     style="filter: brightness(0) invert(1) sepia(1) saturate(10) hue-rotate(100deg) brightness(1.2);
+                            display:block;">
+              </div>
+            </div>
+            <div class="i-label">BIOMETRIC SCAN</div>
+          </div>
+
+          <!-- Stage 3: PIN ENTRY -->
+          <div class="istage" id="is3">
+            <div class="i-lock-ring">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <div class="i-label">ENTER PIN</div>
+            <div class="i-dots" id="pin-dots">
+              <div class="i-dot"></div><div class="i-dot"></div><div class="i-dot"></div>
+              <div class="i-dot"></div><div class="i-dot"></div><div class="i-dot"></div>
+            </div>
+          </div>
+
+          <!-- Stage 4: UNLOCKED -->
+          <div class="istage" id="is4">
+            <div class="i-unlock-ring">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+            </div>
+            <div class="i-label success">ACCESS GRANTED</div>
+            <div class="i-dots">
+              <div class="i-dot lit"></div><div class="i-dot lit"></div><div class="i-dot lit"></div>
+              <div class="i-dot lit"></div><div class="i-dot lit"></div><div class="i-dot lit"></div>
+            </div>
+          </div>
+
+        </div><!-- /i-screen -->
+      </div><!-- /i-phone -->
+    </div><!-- /intro-phone-wrap -->
+
+    <div class="intro-status" id="intro-status">Authenticating&hellip;</div>
+    <div class="intro-skip" id="intro-skip">Skip &rsaquo;</div>
+  </div><!-- /intro -->
 
   <!-- Multi-layer parallax backgrounds -->
   <div id="blob-layer">
@@ -776,9 +1258,8 @@
     </div>
   </nav>
 
-  <!-- ── HERO ─────────────────────────────────────────────── -->
+  <!-- ── HERO ──────────────────────────────────────────────── -->
   <section id="hero">
-    <!-- Deep back parallax layer: rings -->
     <div class="hero-layer-back" id="hero-back">
       <div class="hero-grid-accent"></div>
       <div class="hero-ring ring1"></div>
@@ -788,57 +1269,72 @@
     </div>
 
     <div class="wrap">
-      <div class="hero-content" id="hero-content">
-        <div class="reveal" style="margin-bottom:28px">
-          <span class="tag">v1.0.0 · Open Source · Android 8+</span>
+      <div class="hero-split">
+
+        <!-- LEFT: headline + CTA -->
+        <div class="hero-text-col" id="hero-content">
+          <div class="reveal" style="margin-bottom:28px">
+            <span class="tag">v1.0.0 · Open Source · Android 8+</span>
+          </div>
+          <h1 class="reveal" style="transition-delay:.08s">
+            Military<br>
+            <span class="g">Encrypted</span><br>
+            Vault.
+          </h1>
+          <p class="hero-sub reveal" style="transition-delay:.16s">
+            <span>AES-256-GCM</span> per-file encryption.<br>
+            Hardware-backed keys. Zero cloud. Zero traces.
+          </p>
+          <div class="hero-btns reveal" style="transition-delay:.24s">
+            <a href="https://github.com/DkshByte/pionen/releases" class="btn btn-primary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download APK
+            </a>
+            <a href="https://github.com/DkshByte/pionen" target="_blank" rel="noopener" class="btn btn-ghost">
+              View Source →
+            </a>
+          </div>
         </div>
 
-        <h1 class="reveal" style="transition-delay:.08s">
-          Military<br>
-          <span class="g">Encrypted</span><br>
-          Vault.
-        </h1>
-
-        <p class="hero-sub reveal" style="transition-delay:.16s">
-          <span>AES-256-GCM</span> per-file encryption.<br>
-          Hardware-backed keys. Zero cloud. Zero traces.
-        </p>
-
-        <div class="hero-btns reveal" style="transition-delay:.24s">
-          <a href="https://github.com/DkshByte/pionen/releases" class="btn btn-primary">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download APK
-          </a>
-          <a href="https://github.com/DkshByte/pionen" target="_blank" rel="noopener" class="btn btn-ghost">
-            View Source →
-          </a>
-        </div>
-
-        <!-- Phone — separate parallax layer -->
-        <div class="phone-wrap reveal" id="hero-phone" style="transition-delay:.32s">
-          <div class="phone-aura"></div>
-          <div class="phone">
-            <div class="phone-screen">
-              <div class="lock-ring">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        <!-- RIGHT: large floating phone -->
+        <div class="hero-phone-col reveal" style="transition-delay:.3s">
+          <div class="hero-phone-aura"></div>
+          <div class="hero-big-phone">
+            <div class="hbp-notch"></div>
+            <div class="hbp-status">
+              <span>9:41</span>
+              <span>●●●● 100%</span>
+            </div>
+            <div class="hbp-screen">
+              <div class="hbp-lock-ring">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
               </div>
-              <div class="phone-text">VAULT LOCKED</div>
-              <div class="phone-pin">
-                <div class="pin-dot f"></div>
-                <div class="pin-dot"></div>
-                <div class="pin-dot"></div>
-                <div class="pin-dot"></div>
-                <div class="pin-dot"></div>
-                <div class="pin-dot"></div>
+              <div class="hbp-label">VAULT LOCKED</div>
+              <div class="hbp-pin">
+                <div class="hbp-dot on"></div>
+                <div class="hbp-dot"></div>
+                <div class="hbp-dot"></div>
+                <div class="hbp-dot"></div>
+                <div class="hbp-dot"></div>
+                <div class="hbp-dot"></div>
               </div>
+              <div class="hbp-chips">
+                <span class="hbp-chip">AES-256</span>
+                <span class="hbp-chip">Keystore</span>
+              </div>
+              <div class="hbp-scanline"></div>
             </div>
           </div>
         </div>
-      </div>
+
+      </div><!-- /hero-split -->
     </div>
   </section>
+
+
 
   <!-- ── STATS ─────────────────────────────────────────────── -->
   <section class="stats">
@@ -1028,6 +1524,55 @@
   </footer>
 
   <script>
+    // ═══════════════════════════════════════════════════════
+    // INTRO ANIMATION TIMELINE
+    // ═══════════════════════════════════════════════════════
+    const introEl     = document.getElementById('intro');
+    const introPh     = document.getElementById('intro-phone-wrap');
+    const introStat   = document.getElementById('intro-status');
+    const introSkip   = document.getElementById('intro-skip');
+    const pinDots     = document.querySelectorAll('#pin-dots .i-dot');
+
+    function setStage(nextId) {
+      document.querySelectorAll('.istage').forEach(s => {
+        if (s.classList.contains('on')) {
+          s.classList.remove('on'); s.classList.add('out');
+          setTimeout(() => s.classList.remove('out'), 400);
+        }
+      });
+      setTimeout(() => document.getElementById(nextId).classList.add('on'), 80);
+    }
+
+    function endIntro() {
+      introPh.classList.add('shrink');
+      setTimeout(() => {
+        introEl.classList.add('fade-out');
+        setTimeout(() => {
+          introEl.style.display = 'none';
+          document.body.classList.remove('intro-active');
+        }, 860);
+      }, 500);
+    }
+
+    // Timeline
+    const T = {
+      bio    : 1100,   // biometric stage
+      pin    : 2100,   // PIN entry stage
+      pinFill: 2350,   // dots fill
+      unlock : 3250,   // access granted
+      exit   : 3900,   // intro exits
+    };
+
+    setTimeout(() => { setStage('is2'); introStat.textContent = 'Biometric verified...'; }, T.bio);
+    setTimeout(() => { setStage('is3'); introStat.textContent = 'Enter PIN to confirm...'; }, T.pin);
+    pinDots.forEach((d, i) => setTimeout(() => d.classList.add('lit'), T.pinFill + i * 110));
+    setTimeout(() => { setStage('is4'); introStat.textContent = 'Access granted.'; }, T.unlock);
+    setTimeout(endIntro, T.exit);
+    introSkip.addEventListener('click', endIntro);
+
+    // ═══════════════════════════════════════════════════════
+    // PARALLAX + MAIN PAGE LOGIC
+    // ═══════════════════════════════════════════════════════
     // ── Elements ─────────────────────────────────────────────
     const nav        = document.getElementById('nav');
     const blobLayer  = document.getElementById('blob-layer');
