@@ -133,9 +133,9 @@
 
     /* ── Layout utils ───────────────────────────────────────── */
     .wrap {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 0 28px;
+      padding: 0 36px;
       position: relative; z-index: 2;
     }
 
@@ -632,7 +632,7 @@
     @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
 
     .stat {
-      padding: 28px 20px;
+      padding: 36px 24px;
       text-align: center;
       border-right: 1px solid rgba(0,255,136,0.07);
       background: rgba(0,0,0,0.4);
@@ -645,59 +645,59 @@
 
     .stat-n {
       font-family: var(--head);
-      font-size: 28px; font-weight: 700;
+      font-size: 34px; font-weight: 700;
       letter-spacing: -0.03em;
       color: var(--green);
       text-shadow: 0 0 20px rgba(0,255,136,0.4);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
     .stat-l {
       font-family: var(--mono);
-      font-size: 9px; letter-spacing: 0.12em;
+      font-size: 10px; letter-spacing: 0.12em;
       text-transform: uppercase; color: var(--gray);
     }
 
     /* ═══════════════════════════════════════════════════════ */
     /* FEATURES                                                */
     /* ═══════════════════════════════════════════════════════ */
-    #features { padding: 100px 0; }
+    #features { padding: 120px 0; }
 
     .sec-hd {
       text-align: center;
-      margin-bottom: 64px;
+      margin-bottom: 80px;
     }
 
-    .sec-hd .tag { margin-bottom: 24px; }
+    .sec-hd .tag { margin-bottom: 28px; }
 
     h2 {
       font-family: var(--head);
-      font-size: clamp(30px, 5vw, 50px);
+      font-size: clamp(36px, 5.5vw, 64px);
       font-weight: 700;
       letter-spacing: -0.03em;
-      line-height: 1.1;
+      line-height: 1.05;
       margin-bottom: 16px;
     }
 
     .sec-sub {
       font-family: var(--mono);
-      font-size: 13px; line-height: 1.9;
+      font-size: 15px; line-height: 2;
       color: var(--gray-lt);
-      max-width: 440px; margin: 0 auto;
+      max-width: 520px; margin: 0 auto;
       letter-spacing: 0.02em;
     }
 
     .feat-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
+      gap: 20px;
     }
 
     @media (max-width: 900px) { .feat-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 580px) { .feat-grid { grid-template-columns: 1fr; } }
 
     .feat {
-      padding: 30px;
+      padding: 36px;
     }
 
     .feat-big {
@@ -708,13 +708,13 @@
     @media (max-width: 900px) { .feat-big { grid-column: span 1; } }
 
     .feat-icon {
-      width: 44px; height: 44px;
-      border-radius: 10px;
+      width: 52px; height: 52px;
+      border-radius: 12px;
       background: rgba(0,255,136,0.06);
       border: 1px solid rgba(0,255,136,0.12);
       display: grid; place-items: center;
-      margin-bottom: 18px;
-      font-size: 20px;
+      margin-bottom: 22px;
+      font-size: 24px;
       transition: box-shadow 0.3s, border-color 0.3s;
     }
 
@@ -724,13 +724,13 @@
     }
 
     .feat h3 {
-      font-size: 16px; font-weight: 600;
-      margin-bottom: 10px; letter-spacing: -0.01em;
+      font-size: 18px; font-weight: 600;
+      margin-bottom: 12px; letter-spacing: -0.01em;
     }
 
     .feat p {
       font-family: var(--mono);
-      font-size: 12px; color: var(--gray-lt); line-height: 1.8;
+      font-size: 13px; color: var(--gray-lt); line-height: 1.9;
     }
 
     .chips {
@@ -750,7 +750,7 @@
     /* ═══════════════════════════════════════════════════════ */
     /* SECURITY                                                */
     /* ═══════════════════════════════════════════════════════ */
-    #security { padding: 100px 0; }
+    #security { padding: 120px 0; }
 
     .sec-split {
       display: grid;
