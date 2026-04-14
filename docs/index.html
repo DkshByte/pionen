@@ -302,7 +302,7 @@
       display: flex; align-items: center;
       padding: 160px 0 80px;
       position: relative;
-      overflow: hidden;
+      /* No overflow:hidden — it was clipping the phone mockup */
     }
 
     /* Deep parallax layers inside hero */
@@ -1028,39 +1028,51 @@
   </footer>
 
   <script>
-    // ── Nav scroll ───────────────────────────────────────────
-    const nav = document.getElementById('nav');
-    let ticking = false;
+    // ── Elements ─────────────────────────────────────────────
+    const nav        = document.getElementById('nav');
+    const blobLayer  = document.getElementById('blob-layer');
+    const midLayer   = document.getElementById('mid-layer');
+    const heroBack   = document.getElementById('hero-back');
+    const heroContent= document.getElementById('hero-content');
 
-    function onScroll() {
-      const sy = window.scrollY;
+    // ── Lerp smoothing state ─────────────────────────────────
+    // Current interpolated values
+    let cur = { blob: 0, mid: 0, back: 0, content: 0 };
+    // Target values (set from scroll)
+    let tgt = { blob: 0, mid: 0, back: 0, content: 0 };
+    const LERP = 0.10; // 0–1, lower = smoother/slower catch-up
 
-      // Nav glass
-      nav.classList.toggle('s', sy > 50);
+    function lerp(a, b, t) { return a + (b - a) * t; }
 
-      // ── Multi-layer parallax ────────────────────────────
-      // Layer 1: blobs (slowest — far away)
-      const blobLayer = document.getElementById('blob-layer');
-      blobLayer.style.transform = `translateY(${sy * 0.15}px)`;
-
-      // Layer 2: grid (medium depth)
-      const midLayer = document.getElementById('mid-layer');
-      midLayer.style.transform = `translateY(${sy * 0.25}px)`;
-
-      // Layer 3: hero back rings (medium-fast)
-      const heroBack = document.getElementById('hero-back');
-      if (heroBack) heroBack.style.transform = `translateY(${sy * 0.4}px)`;
-
-      // Layer 4: hero text (fast — closest to viewer)
-      const heroContent = document.getElementById('hero-content');
-      if (heroContent) heroContent.style.transform = `translateY(${sy * 0.55}px)`;
-
-      ticking = false;
-    }
-
+    // ── Scroll handler — only updates targets ────────────────
+    let scrollY = 0;
     window.addEventListener('scroll', () => {
-      if (!ticking) { requestAnimationFrame(onScroll); ticking = true; }
+      scrollY = window.scrollY;
+      nav.classList.toggle('s', scrollY > 50);
+
+      // Speed multipliers — keep them gentle so phone stays visible
+      tgt.blob    = scrollY * 0.08;   // Far background blobs
+      tgt.mid     = scrollY * 0.14;   // Grid lines
+      tgt.back    = scrollY * 0.22;   // Hero rings
+      tgt.content = scrollY * 0.28;   // Hero text + phone
     }, { passive: true });
+
+    // ── RAF loop — smooth lerp every frame ───────────────────
+    function animate() {
+      cur.blob    = lerp(cur.blob,    tgt.blob,    LERP);
+      cur.mid     = lerp(cur.mid,     tgt.mid,     LERP);
+      cur.back    = lerp(cur.back,    tgt.back,    LERP);
+      cur.content = lerp(cur.content, tgt.content, LERP);
+
+      // Only apply if diff is noticeable (skip micro updates)
+      blobLayer.style.transform  = `translate3d(0,${cur.blob.toFixed(2)}px,0)`;
+      midLayer.style.transform   = `translate3d(0,${cur.mid.toFixed(2)}px,0)`;
+      if (heroBack)    heroBack.style.transform    = `translate3d(0,${cur.back.toFixed(2)}px,0)`;
+      if (heroContent) heroContent.style.transform = `translate3d(0,${cur.content.toFixed(2)}px,0)`;
+
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
 
     // ── Scroll reveal ────────────────────────────────────────
     const io = new IntersectionObserver((entries) => {
@@ -1087,9 +1099,6 @@
         card.style.transition = 'transform 0.4s cubic-bezier(.22,1,.36,1), border-color 0.35s, box-shadow 0.35s';
       });
     });
-
-    // ── Trigger initial scroll ───────────────────────────────
-    onScroll();
   </script>
 </body>
 </html>
