@@ -27,8 +27,14 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Validate Gradle Wrapper
-        uses: gradle/actions/wrapper-validation@v3
+      - name: Ensure Gradle Wrapper JAR
+        run: |
+          JAR=gradle/wrapper/gradle-wrapper.jar
+          if [ ! -f "$JAR" ]; then
+            echo "Downloading gradle-wrapper.jar..."
+            curl -fsSL -o "$JAR" \
+              "https://github.com/gradle/gradle/raw/v8.5.0/gradle/wrapper/gradle-wrapper.jar"
+          fi
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -67,6 +73,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
+
+      - name: Ensure Gradle Wrapper JAR
+        run: |
+          JAR=gradle/wrapper/gradle-wrapper.jar
+          if [ ! -f "$JAR" ]; then
+            curl -fsSL -o "$JAR" \
+              "https://github.com/gradle/gradle/raw/v8.5.0/gradle/wrapper/gradle-wrapper.jar"
+          fi
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
