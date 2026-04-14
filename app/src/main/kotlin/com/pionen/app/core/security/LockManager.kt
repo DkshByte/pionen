@@ -69,6 +69,10 @@ class LockManager @Inject constructor(
     // Track if biometric step is complete (for two-factor)
     private val _biometricPassed = MutableStateFlow(false)
     val biometricPassed: StateFlow<Boolean> = _biometricPassed
+
+    // Track if biometric prompt is currently showing (don't lock during prompt)
+    private val _isBiometricPromptShowing = MutableStateFlow(false)
+    val isBiometricPromptShowing: StateFlow<Boolean> = _isBiometricPromptShowing
     
     /**
      * Check if biometric authentication is available.
@@ -156,6 +160,16 @@ class LockManager @Inject constructor(
         _lockState.value = LockState.Locked
         _biometricPassed.value = false
     }
+
+    /**
+     * Unlock as decoy - sets Unlocked state so navigation works,
+     * but the ViewModel tracks that we're in decoy mode separately.
+     */
+    fun unlockAsDecoy() {
+        _lockState.value = LockState.Unlocked(System.currentTimeMillis())
+        _biometricPassed.value = false
+        lastActivityTime = System.currentTimeMillis()
+    }
     
     /**
      * Authenticate with biometrics (step 1 of 2-factor).
@@ -164,18 +178,21 @@ class LockManager @Inject constructor(
         if (!isBiometricAvailable()) {
             return UnlockResult.Error("Biometric authentication not available")
         }
-        
+
         return suspendCoroutine { continuation ->
+            _isBiometricPromptShowing.value = true
             val executor: Executor = ContextCompat.getMainExecutor(context)
-            
+
             val callback = object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    _isBiometricPromptShowing.value = false
                     _biometricPassed.value = true
                     _failedAttempts.value = 0
                     continuation.resume(UnlockResult.Success)
                 }
-                
+
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    _isBiometricPromptShowing.value = false
                     _failedAttempts.value++
                     if (_failedAttempts.value >= MAX_FAILED_ATTEMPTS) {
                         continuation.resume(UnlockResult.TooManyAttempts)
@@ -183,33 +200,41 @@ class LockManager @Inject constructor(
                         continuation.resume(UnlockResult.Error(errString.toString()))
                     }
                 }
-                
+
                 override fun onAuthenticationFailed() {
+                    // A single biometric attempt failed (e.g. bad fingerprint)
+                    // but the prompt is still showing — do NOT resume here.
+                    // The prompt will call onAuthenticationError when fully dismissed.
                     _failedAttempts.value++
                     if (_failedAttempts.value >= MAX_FAILED_ATTEMPTS) {
+                        _isBiometricPromptShowing.value = false
                         continuation.resume(UnlockResult.TooManyAttempts)
                     }
+                    // If below threshold, leave prompt open - system handles retry
                 }
             }
-            
+
             val biometricPrompt = BiometricPrompt(activity, executor, callback)
-            
+
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Unlock Pionen")
                 .setSubtitle("Step 1: Verify your identity")
                 .setNegativeButtonText("Cancel")
                 .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
                 .build()
-            
+
             biometricPrompt.authenticate(promptInfo)
         }
     }
     
     /**
      * Called when app goes to background.
+     * Does NOT lock during biometric prompt since the system shows it on top of the activity.
      */
     fun onAppBackgrounded() {
-        lock()
+        if (!_isBiometricPromptShowing.value) {
+            lock()
+        }
     }
     
     /**

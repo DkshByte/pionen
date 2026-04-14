@@ -28,6 +28,9 @@ class PionenApplication : Application(), ImageLoaderFactory {
         // Install global crash handler
         CrashHandler.install(this)
         
+        // Initialize SQLCipher native libraries
+        net.sqlcipher.database.SQLiteDatabase.loadLibs(this)
+        
         // Enable StrictMode in debug builds only
         if (BuildConfig.ENABLE_LOGGING) {
             enableStrictMode()

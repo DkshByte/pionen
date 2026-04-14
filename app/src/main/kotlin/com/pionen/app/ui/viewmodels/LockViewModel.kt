@@ -9,12 +9,14 @@ import com.pionen.app.core.security.LockManager
 import com.pionen.app.core.security.LockState
 import com.pionen.app.core.security.UnlockResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -57,29 +59,32 @@ class LockViewModel @Inject constructor(
     }
     
     suspend fun verifyPin(pin: String): Boolean {
-        // First check if this is a decoy PIN
-        val isDecoy = decoyVaultManager.isDecoyPin(pin)
-        if (isDecoy) {
-            // Enter decoy mode - user sees fake vault
-            _isDecoyMode.value = true
-            // Simulate successful unlock (but we're in decoy mode)
-            return true
-        }
-        
-        // Try real PIN
-        val success = lockManager.verifyPin(pin)
-        
-        if (!success) {
-            // Trigger intruder capture on failed PIN
-            viewModelScope.launch {
-                intruderCaptureManager.onFailedAttempt(failedAttempts.value)
+        // Run PBKDF2 hashing off the main thread to prevent ANR
+        return withContext(Dispatchers.IO) {
+            // First check if this is a decoy PIN
+            val isDecoy = decoyVaultManager.isDecoyPin(pin)
+            if (isDecoy) {
+                // Enter decoy mode - signal unlock so navigation triggers
+                _isDecoyMode.value = true
+                lockManager.unlockAsDecoy()
+                return@withContext true
             }
-        } else {
-            // Real unlock - ensure not in decoy mode
-            _isDecoyMode.value = false
+
+            // Try real PIN
+            val success = lockManager.verifyPin(pin)
+
+            if (!success) {
+                // Trigger intruder capture on failed PIN
+                viewModelScope.launch {
+                    intruderCaptureManager.onFailedAttempt(failedAttempts.value)
+                }
+            } else {
+                // Real unlock - ensure not in decoy mode
+                _isDecoyMode.value = false
+            }
+
+            success
         }
-        
-        return success
     }
     
     fun lock() {

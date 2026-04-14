@@ -1,50 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pionen — Military-Grade Mobile Vault</title>
-  <meta name="description" content="Pionen is a privacy-first encrypted Android vault. AES-256-GCM encryption, hardware-backed keys, biometric auth, panic wipe and stealth mode." />
+  <title>Pionen</title>
+  <meta name="description"
+    content="Pionen is a privacy-first encrypted Android vault. AES-256-GCM encryption, hardware-backed keys, biometric auth, panic wipe and stealth mode." />
   <link rel="canonical" href="https://pionen.in" />
   <meta property="og:title" content="Pionen — Military-Grade Mobile Vault" />
-  <meta property="og:description" content="Privacy-first encrypted vault for Android. AES-256-GCM, hardware-backed keys, panic wipe, stealth mode." />
+  <meta property="og:description"
+    content="Privacy-first encrypted vault for Android. AES-256-GCM, hardware-backed keys, panic wipe, stealth mode." />
   <meta property="og:url" content="https://pionen.in" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Pionen — Military-Grade Mobile Vault" />
   <meta name="twitter:description" content="Free, open-source encrypted Android vault. Zero cloud. AES-256." />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000'/><rect x='30' y='45' width='40' height='30' rx='5' fill='none' stroke='%2300ff88' stroke-width='5'/><path d='M38 45V35a12 12 0 0 1 24 0v10' fill='none' stroke='%2300ff88' stroke-width='5' stroke-linecap='round'/></svg>" />
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000'/><rect x='30' y='45' width='40' height='30' rx='5' fill='none' stroke='%2300ff88' stroke-width='5'/><path d='M38 45V35a12 12 0 0 1 24 0v10' fill='none' stroke='%2300ff88' stroke-width='5' stroke-linecap='round'/></svg>" />
   <link rel="dns-prefetch" href="//fonts.googleapis.com" />
   <link rel="dns-prefetch" href="//fonts.gstatic.com" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap"
+    rel="stylesheet" />
 
   <style>
     /* ── Reset ─────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --black:     #000000;
-      --black2:    #030303;
-      --black3:    #080808;
-      --green:     #00ff88;
-      --green-dim: #00cc6a;
-      --green-dk:  #00794a;
-      --green-glow:#00ff8844;
-      --green-pale:#86efac;
-      --glass-bg:  rgba(0, 255, 136, 0.025);
-      --glass-bd:  rgba(0, 255, 136, 0.07);
-      --glass-hl:  rgba(0, 255, 136, 0.14);
-      --white:     #f0fff8;
-      --gray:      #71717a;
-      --gray-lt:   #a1a1aa;
-      --mono:      'JetBrains Mono', monospace;
-      --head:      'Space Grotesk', sans-serif;
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    html { scroll-behavior: smooth; overflow-x: hidden; }
+    :root {
+      --black: #000000;
+      --black2: #030303;
+      --black3: #080808;
+      --green: #00ff88;
+      --green-dim: #00cc6a;
+      --green-dk: #00794a;
+      --green-glow: #00ff8844;
+      --green-pale: #86efac;
+      --glass-bg: rgba(0, 255, 136, 0.025);
+      --glass-bd: rgba(0, 255, 136, 0.07);
+      --glass-hl: rgba(0, 255, 136, 0.14);
+      --white: #f0fff8;
+      --gray: #71717a;
+      --gray-lt: #a1a1aa;
+      --mono: 'JetBrains Mono', monospace;
+      --head: 'Space Grotesk', sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
 
     body {
       font-family: var(--head);
@@ -57,21 +72,23 @@
     /* ── Scanline retro overlay ─────────────────────────────── */
     body::before {
       content: '';
-      position: fixed; inset: 0; z-index: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 255, 136, 0.012) 2px,
-        rgba(0, 255, 136, 0.012) 4px
-      );
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 255, 136, 0.012) 2px,
+          rgba(0, 255, 136, 0.012) 4px);
       pointer-events: none;
     }
 
     /* ── Noise texture ──────────────────────────────────────── */
     body::after {
       content: '';
-      position: fixed; inset: 0; z-index: 0;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
       background-size: 200px 200px;
       pointer-events: none;
@@ -79,7 +96,9 @@
 
     /* ── Parallax blob layer ────────────────────────────────── */
     #blob-layer {
-      position: fixed; inset: 0; z-index: 0;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
       pointer-events: none;
       will-change: transform;
     }
@@ -92,43 +111,63 @@
     }
 
     .b1 {
-      width: 800px; height: 800px;
+      width: 800px;
+      height: 800px;
       background: radial-gradient(circle, #00ff4420 0%, transparent 70%);
-      top: -300px; left: -300px;
+      top: -300px;
+      left: -300px;
       animation-delay: 0s;
     }
+
     .b2 {
-      width: 600px; height: 600px;
+      width: 600px;
+      height: 600px;
       background: radial-gradient(circle, #00cc6a18 0%, transparent 70%);
-      top: 200px; right: -200px;
+      top: 200px;
+      right: -200px;
       animation-delay: -3s;
     }
+
     .b3 {
-      width: 500px; height: 500px;
+      width: 500px;
+      height: 500px;
       background: radial-gradient(circle, #00ff8814 0%, transparent 70%);
-      bottom: 0px; left: 25%;
+      bottom: 0px;
+      left: 25%;
       animation-delay: -5s;
     }
 
     /* Mid-layer for deeper parallax */
     #mid-layer {
-      position: fixed; inset: 0; z-index: 0;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
       pointer-events: none;
       will-change: transform;
     }
 
     .grid-lines {
-      position: absolute; inset: 0;
+      position: absolute;
+      inset: 0;
       background-image:
-        linear-gradient(rgba(0,255,136,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,255,136,0.025) 1px, transparent 1px);
+        linear-gradient(rgba(0, 255, 136, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.025) 1px, transparent 1px);
       background-size: 80px 80px;
       mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
     }
 
     @keyframes breathe {
-      0%,100% { transform: scale(1) rotate(0deg); opacity: 0.8; }
-      50%      { transform: scale(1.12) rotate(4deg); opacity: 1; }
+
+      0%,
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 0.8;
+      }
+
+      50% {
+        transform: scale(1.12) rotate(4deg);
+        opacity: 1;
+      }
     }
 
     /* ── Layout utils ───────────────────────────────────────── */
@@ -136,7 +175,8 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 36px;
-      position: relative; z-index: 2;
+      position: relative;
+      z-index: 2;
     }
 
     /* ── Glass card ─────────────────────────────────────────── */
@@ -148,54 +188,67 @@
       border-radius: 20px;
       position: relative;
       overflow: hidden;
-      transition: border-color 0.35s, box-shadow 0.35s, transform 0.35s cubic-bezier(.22,1,.36,1);
+      transition: border-color 0.35s, box-shadow 0.35s, transform 0.35s cubic-bezier(.22, 1, .36, 1);
     }
 
     .glass::before {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent 0%, rgba(0,255,136,0.2) 50%, transparent 100%);
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(0, 255, 136, 0.2) 50%, transparent 100%);
     }
 
     .glass:hover {
       border-color: var(--glass-hl);
-      box-shadow: 0 0 40px rgba(0,255,136,0.06), 0 20px 60px rgba(0,0,0,0.6);
+      box-shadow: 0 0 40px rgba(0, 255, 136, 0.06), 0 20px 60px rgba(0, 0, 0, 0.6);
       transform: translateY(-5px);
     }
 
     /* ── Buttons ────────────────────────────────────────────── */
     .btn {
-      display: inline-flex; align-items: center; gap: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       padding: 15px 30px;
       font-family: var(--head);
-      font-size: 14px; font-weight: 600;
+      font-size: 14px;
+      font-weight: 600;
       border-radius: 100px;
-      border: none; cursor: pointer;
+      border: none;
+      cursor: pointer;
       text-decoration: none;
-      transition: all 0.3s cubic-bezier(.22,1,.36,1);
-      position: relative; overflow: hidden;
+      transition: all 0.3s cubic-bezier(.22, 1, .36, 1);
+      position: relative;
+      overflow: hidden;
       letter-spacing: 0.01em;
     }
 
     .btn-primary {
       background: var(--green);
       color: #000;
-      box-shadow: 0 0 20px var(--green-glow), 0 8px 24px rgba(0,255,136,0.2);
+      box-shadow: 0 0 20px var(--green-glow), 0 8px 24px rgba(0, 255, 136, 0.2);
     }
 
     .btn-primary:hover {
       transform: scale(1.04) translateY(-2px);
-      box-shadow: 0 0 40px var(--green-glow), 0 16px 48px rgba(0,255,136,0.35);
+      box-shadow: 0 0 40px var(--green-glow), 0 16px 48px rgba(0, 255, 136, 0.35);
     }
 
     .btn-primary::after {
       content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent);
-      opacity: 0; transition: opacity 0.3s;
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
     }
 
-    .btn-primary:hover::after { opacity: 1; }
+    .btn-primary:hover::after {
+      opacity: 1;
+    }
 
     .btn-ghost {
       background: transparent;
@@ -205,18 +258,23 @@
 
     .btn-ghost:hover {
       border-color: var(--green);
-      background: rgba(0,255,136,0.04);
-      box-shadow: 0 0 20px rgba(0,255,136,0.08);
+      background: rgba(0, 255, 136, 0.04);
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.08);
     }
 
     /* ── Tag ────────────────────────────────────────────────── */
     .tag {
-      display: inline-flex; align-items: center; gap: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       font-family: var(--mono);
-      font-size: 10px; font-weight: 500; letter-spacing: 0.14em;
-      text-transform: uppercase; color: var(--green);
-      background: rgba(0,255,136,0.06);
-      border: 1px solid rgba(0,255,136,0.15);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--green);
+      background: rgba(0, 255, 136, 0.06);
+      border: 1px solid rgba(0, 255, 136, 0.15);
       border-radius: 4px;
       padding: 5px 12px;
     }
@@ -231,7 +289,7 @@
     .reveal {
       opacity: 0;
       transform: translateY(40px);
-      transition: opacity 0.8s cubic-bezier(.22,1,.36,1), transform 0.8s cubic-bezier(.22,1,.36,1);
+      transition: opacity 0.8s cubic-bezier(.22, 1, .36, 1), transform 0.8s cubic-bezier(.22, 1, .36, 1);
     }
 
     .reveal.in {
@@ -251,73 +309,105 @@
     /* NAV                                                     */
     /* ═══════════════════════════════════════════════════════ */
     nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
       padding: 18px 0;
       transition: background 0.4s, border-bottom 0.4s;
     }
 
     nav.s {
-      background: rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(0,255,136,0.07);
+      border-bottom: 1px solid rgba(0, 255, 136, 0.07);
     }
 
     .nav-in {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .logo {
       font-family: var(--mono);
-      font-size: 18px; font-weight: 500;
+      font-size: 18px;
+      font-weight: 500;
       color: var(--green);
       text-decoration: none;
       letter-spacing: 0.08em;
-      display: flex; align-items: center; gap: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .logo-box {
-      width: 30px; height: 30px;
+      width: 30px;
+      height: 30px;
       border: 1px solid var(--green);
       border-radius: 6px;
-      display: grid; place-items: center;
-      box-shadow: 0 0 12px rgba(0,255,136,0.25);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.25);
     }
 
-    .nav-links { display: flex; gap: 30px; list-style: none; }
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      list-style: none;
+    }
+
     .nav-links a {
       font-family: var(--mono);
-      color: var(--gray); font-size: 12px; letter-spacing: 0.06em;
-      text-decoration: none; text-transform: uppercase;
+      color: var(--gray);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      text-transform: uppercase;
       transition: color 0.2s;
     }
-    .nav-links a:hover { color: var(--green); }
 
-    @media (max-width: 768px) { .nav-links { display: none; } }
+    .nav-links a:hover {
+      color: var(--green);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+    }
 
     /* ═══════════════════════════════════════════════════════ */
     /* HERO — with deep parallax layers                        */
     /* ═══════════════════════════════════════════════════════ */
     #hero {
       min-height: 100vh;
-      display: flex; align-items: center;
+      display: flex;
+      align-items: center;
       position: relative;
       /* padding handled by .hero-split */
     }
 
     /* Deep parallax layers inside hero */
     .hero-layer-back {
-      position: absolute; inset: 0; z-index: 0;
+      position: absolute;
+      inset: 0;
+      z-index: 0;
       will-change: transform;
     }
 
     .hero-grid-accent {
       position: absolute;
-      width: 400px; height: 400px;
+      width: 400px;
+      height: 400px;
       background:
-        linear-gradient(rgba(0,255,136,0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,255,136,0.06) 1px, transparent 1px);
+        linear-gradient(rgba(0, 255, 136, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.06) 1px, transparent 1px);
       background-size: 40px 40px;
-      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       border-radius: 50%;
       mask-image: radial-gradient(circle, black 40%, transparent 70%);
     }
@@ -325,23 +415,54 @@
     .hero-ring {
       position: absolute;
       border-radius: 50%;
-      border: 1px solid rgba(0,255,136,0.08);
-      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      border: 1px solid rgba(0, 255, 136, 0.08);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       animation: expand 4s ease-in-out infinite;
     }
 
-    .ring1 { width: 300px; height: 300px; animation-delay: 0s; }
-    .ring2 { width: 500px; height: 500px; animation-delay: 0.8s; }
-    .ring3 { width: 700px; height: 700px; animation-delay: 1.6s; }
-    .ring4 { width: 900px; height: 900px; animation-delay: 2.4s; }
+    .ring1 {
+      width: 300px;
+      height: 300px;
+      animation-delay: 0s;
+    }
+
+    .ring2 {
+      width: 500px;
+      height: 500px;
+      animation-delay: 0.8s;
+    }
+
+    .ring3 {
+      width: 700px;
+      height: 700px;
+      animation-delay: 1.6s;
+    }
+
+    .ring4 {
+      width: 900px;
+      height: 900px;
+      animation-delay: 2.4s;
+    }
 
     @keyframes expand {
-      0%,100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
-      50%      { opacity: 0.2; transform: translate(-50%, -50%) scale(1.04); }
+
+      0%,
+      100% {
+        opacity: 0.6;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      50% {
+        opacity: 0.2;
+        transform: translate(-50%, -50%) scale(1.04);
+      }
     }
 
     .hero-content {
-      position: relative; z-index: 2;
+      position: relative;
+      z-index: 2;
       text-align: center;
       max-width: 860px;
       margin: 0 auto;
@@ -360,17 +481,24 @@
 
     .hero-sub {
       font-family: var(--mono);
-      font-size: 15px; line-height: 1.8;
+      font-size: 15px;
+      line-height: 1.8;
       color: var(--gray-lt);
-      max-width: 500px; margin: 0 auto 48px;
+      max-width: 500px;
+      margin: 0 auto 48px;
       letter-spacing: 0.02em;
     }
 
-    .hero-sub span { color: var(--green); }
+    .hero-sub span {
+      color: var(--green);
+    }
 
     .hero-btns {
-      display: flex; align-items: center; justify-content: center;
-      gap: 14px; flex-wrap: wrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
       margin-bottom: 80px;
     }
 
@@ -384,82 +512,119 @@
 
     .phone-aura {
       position: absolute;
-      top: 50%; left: 50%; transform: translate(-50%,-50%);
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, rgba(0,255,136,0.12) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(0, 255, 136, 0.12) 0%, transparent 70%);
       border-radius: 50%;
       animation: aura 3.5s ease-in-out infinite;
     }
 
     @keyframes aura {
-      0%,100% { transform: translate(-50%,-50%) scale(1);   opacity: 0.8; }
-      50%      { transform: translate(-50%,-50%) scale(1.2); opacity: 1;   }
+
+      0%,
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+      }
+
+      50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+      }
     }
 
     .phone {
-      width: 200px; height: 390px;
-      background: rgba(0,255,136,0.02);
-      border: 1px solid rgba(0,255,136,0.15);
+      width: 200px;
+      height: 390px;
+      background: rgba(0, 255, 136, 0.02);
+      border: 1px solid rgba(0, 255, 136, 0.15);
       border-radius: 36px;
       position: relative;
       overflow: hidden;
       box-shadow:
-        0 0 0 1px rgba(0,255,136,0.05),
-        0 0 60px rgba(0,255,136,0.1),
-        0 40px 80px rgba(0,0,0,0.8),
-        inset 0 1px 0 rgba(0,255,136,0.1);
+        0 0 0 1px rgba(0, 255, 136, 0.05),
+        0 0 60px rgba(0, 255, 136, 0.1),
+        0 40px 80px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(0, 255, 136, 0.1);
     }
 
     .phone::before {
       content: '';
-      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-      width: 70px; height: 5px;
-      background: rgba(0,255,136,0.15);
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70px;
+      height: 5px;
+      background: rgba(0, 255, 136, 0.15);
       border-radius: 0 0 5px 5px;
     }
 
     .phone-screen {
-      position: absolute; inset: 10px;
+      position: absolute;
+      inset: 10px;
       background: #000;
       border-radius: 28px;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       gap: 12px;
-      border: 1px solid rgba(0,255,136,0.06);
+      border: 1px solid rgba(0, 255, 136, 0.06);
     }
 
     .lock-ring {
-      width: 64px; height: 64px;
+      width: 64px;
+      height: 64px;
       border-radius: 50%;
-      border: 1px solid rgba(0,255,136,0.35);
-      background: rgba(0,255,136,0.05);
-      display: grid; place-items: center;
-      box-shadow: 0 0 20px rgba(0,255,136,0.25), inset 0 0 20px rgba(0,255,136,0.05);
+      border: 1px solid rgba(0, 255, 136, 0.35);
+      background: rgba(0, 255, 136, 0.05);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.25), inset 0 0 20px rgba(0, 255, 136, 0.05);
       animation: lock-pulse 2.5s ease-in-out infinite;
     }
 
     @keyframes lock-pulse {
-      0%,100% { box-shadow: 0 0 15px rgba(0,255,136,0.2);  }
-      50%      { box-shadow: 0 0 35px rgba(0,255,136,0.5);  }
+
+      0%,
+      100% {
+        box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+      }
+
+      50% {
+        box-shadow: 0 0 35px rgba(0, 255, 136, 0.5);
+      }
     }
 
     .phone-text {
       font-family: var(--mono);
-      font-size: 9px; letter-spacing: 0.18em;
-      color: rgba(0,255,136,0.5);
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: rgba(0, 255, 136, 0.5);
       text-transform: uppercase;
     }
 
     .phone-pin {
-      display: flex; gap: 6px;
+      display: flex;
+      gap: 6px;
     }
 
     .pin-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      border: 1px solid rgba(0,255,136,0.3);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 255, 136, 0.3);
     }
 
-    .pin-dot.f { background: var(--green); border-color: var(--green); box-shadow: 0 0 6px var(--green); }
+    .pin-dot.f {
+      background: var(--green);
+      border-color: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
 
     /* ═══════════════════════════════════════════════════════ */
     /* HERO SPLIT LAYOUT                                      */
@@ -471,7 +636,8 @@
       gap: 60px;
       width: 100%;
       min-height: 100vh;
-      padding: 90px 0 60px; /* 90px = nav height + breathing room */
+      padding: 90px 0 60px;
+      /* 90px = nav height + breathing room */
     }
 
     @media (max-width: 900px) {
@@ -480,11 +646,20 @@
         text-align: center;
         padding: 120px 0 60px;
       }
-      .hero-btns { justify-content: center; }
-      .hero-sub { margin: 0 auto 48px; }
+
+      .hero-btns {
+        justify-content: center;
+      }
+
+      .hero-sub {
+        margin: 0 auto 48px;
+      }
     }
 
-    .hero-text-col { position: relative; z-index: 2; }
+    .hero-text-col {
+      position: relative;
+      z-index: 2;
+    }
 
     /* ── Big floating phone ─────────────────────────────── */
     .hero-phone-col {
@@ -497,88 +672,142 @@
 
     .hero-phone-aura {
       position: absolute;
-      width: 380px; height: 380px;
+      width: 380px;
+      height: 380px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,255,136,0.1) 0%, transparent 68%);
+      background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, transparent 68%);
       animation: hpa 4s ease-in-out infinite;
     }
 
     @keyframes hpa {
-      0%,100% { transform: scale(1);   opacity: 0.7; }
-      50%      { transform: scale(1.2); opacity: 1;   }
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.7;
+      }
+
+      50% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
     }
 
     .hero-big-phone {
-      width: 230px; height: 470px;
-      background: rgba(0,255,136,0.025);
-      border: 1.5px solid rgba(0,255,136,0.18);
+      width: 230px;
+      height: 470px;
+      background: rgba(0, 255, 136, 0.025);
+      border: 1.5px solid rgba(0, 255, 136, 0.18);
       border-radius: 40px;
-      position: relative; overflow: hidden;
+      position: relative;
+      overflow: hidden;
       box-shadow:
-        0 0 0 1px rgba(0,255,136,0.06),
-        0 0 60px rgba(0,255,136,0.15),
-        0 50px 80px rgba(0,0,0,0.8),
-        inset 0 1px 0 rgba(0,255,136,0.12);
+        0 0 0 1px rgba(0, 255, 136, 0.06),
+        0 0 60px rgba(0, 255, 136, 0.15),
+        0 50px 80px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(0, 255, 136, 0.12);
       animation: phoneFloat 6s ease-in-out infinite;
     }
 
     @keyframes phoneFloat {
-      0%,100% { transform: translateY(0px)   rotate(0deg);   }
-      33%      { transform: translateY(-14px) rotate(0.6deg); }
-      66%      { transform: translateY(-8px)  rotate(-0.4deg);}
+
+      0%,
+      100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      33% {
+        transform: translateY(-14px) rotate(0.6deg);
+      }
+
+      66% {
+        transform: translateY(-8px) rotate(-0.4deg);
+      }
     }
 
     .hbp-notch {
-      position: absolute; top: 0; left: 50%;
+      position: absolute;
+      top: 0;
+      left: 50%;
       transform: translateX(-50%);
-      width: 76px; height: 6px;
-      background: rgba(0,255,136,0.18);
-      border-radius: 0 0 5px 5px; z-index: 3;
+      width: 76px;
+      height: 6px;
+      background: rgba(0, 255, 136, 0.18);
+      border-radius: 0 0 5px 5px;
+      z-index: 3;
     }
 
     .hbp-status {
-      position: absolute; top: 14px; left: 0; right: 0;
-      display: flex; justify-content: space-between;
-      padding: 0 18px; z-index: 3;
-      font-family: var(--mono); font-size: 8px;
-      color: rgba(0,255,136,0.35); letter-spacing: 0.05em;
+      position: absolute;
+      top: 14px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 18px;
+      z-index: 3;
+      font-family: var(--mono);
+      font-size: 8px;
+      color: rgba(0, 255, 136, 0.35);
+      letter-spacing: 0.05em;
     }
 
     .hbp-screen {
-      position: absolute; inset: 11px;
+      position: absolute;
+      inset: 11px;
       background: #000;
       border-radius: 30px;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 14px; padding: 20px;
-      border: 1px solid rgba(0,255,136,0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 20px;
+      border: 1px solid rgba(0, 255, 136, 0.05);
       overflow: hidden;
     }
 
     .hbp-lock-ring {
-      width: 72px; height: 72px; border-radius: 50%;
-      border: 1.5px solid rgba(0,255,136,0.3);
-      background: rgba(0,255,136,0.04);
-      display: grid; place-items: center;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0, 255, 136, 0.3);
+      background: rgba(0, 255, 136, 0.04);
+      display: grid;
+      place-items: center;
       animation: hbpPulse 2.5s ease-in-out infinite;
     }
 
     @keyframes hbpPulse {
-      0%,100% { box-shadow: 0 0 16px rgba(0,255,136,0.15); }
-      50%      { box-shadow: 0 0 36px rgba(0,255,136,0.45); }
+
+      0%,
+      100% {
+        box-shadow: 0 0 16px rgba(0, 255, 136, 0.15);
+      }
+
+      50% {
+        box-shadow: 0 0 36px rgba(0, 255, 136, 0.45);
+      }
     }
 
     .hbp-label {
       font-family: var(--mono);
-      font-size: 8px; letter-spacing: 0.2em;
-      text-transform: uppercase; color: rgba(0,255,136,0.45);
+      font-size: 8px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(0, 255, 136, 0.45);
     }
 
-    .hbp-pin { display: flex; gap: 8px; }
+    .hbp-pin {
+      display: flex;
+      gap: 8px;
+    }
 
     .hbp-dot {
-      width: 9px; height: 9px; border-radius: 50%;
-      border: 1.5px solid rgba(0,255,136,0.28);
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0, 255, 136, 0.28);
     }
 
     .hbp-dot.on {
@@ -588,29 +817,42 @@
     }
 
     .hbp-chips {
-      display: flex; gap: 6px; flex-wrap: wrap;
-      justify-content: center; margin-top: 4px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 4px;
     }
 
     .hbp-chip {
-      font-family: var(--mono); font-size: 8px;
-      letter-spacing: 0.08em; padding: 3px 8px;
-      background: rgba(0,255,136,0.05);
-      border: 1px solid rgba(0,255,136,0.12);
-      border-radius: 3px; color: rgba(0,255,136,0.6);
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      background: rgba(0, 255, 136, 0.05);
+      border: 1px solid rgba(0, 255, 136, 0.12);
+      border-radius: 3px;
+      color: rgba(0, 255, 136, 0.6);
     }
 
     /* CRT scanline sweep */
     .hbp-scanline {
-      position: absolute; left: 0; right: 0;
+      position: absolute;
+      left: 0;
+      right: 0;
       height: 2px;
-      background: linear-gradient(90deg, transparent 0%, rgba(0,255,136,0.2) 50%, transparent 100%);
+      background: linear-gradient(90deg, transparent 0%, rgba(0, 255, 136, 0.2) 50%, transparent 100%);
       animation: hbpScan 3s linear infinite;
     }
 
     @keyframes hbpScan {
-      0%  { top: 10%; }
-      100%{ top: 90%; }
+      0% {
+        top: 10%;
+      }
+
+      100% {
+        top: 90%;
+      }
     }
 
     /* ═══════════════════════════════════════════════════════ */
@@ -624,51 +866,67 @@
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      border: 1px solid rgba(0,255,136,0.07);
+      border: 1px solid rgba(0, 255, 136, 0.07);
       border-radius: 16px;
       overflow: hidden;
     }
 
-    @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
 
     .stat {
       padding: 36px 24px;
       text-align: center;
-      border-right: 1px solid rgba(0,255,136,0.07);
-      background: rgba(0,0,0,0.4);
+      border-right: 1px solid rgba(0, 255, 136, 0.07);
+      background: rgba(0, 0, 0, 0.4);
       transition: background 0.3s;
       cursor: default;
     }
 
-    .stat:last-child { border-right: none; }
-    .stat:hover { background: rgba(0,255,136,0.03); }
+    .stat:last-child {
+      border-right: none;
+    }
+
+    .stat:hover {
+      background: rgba(0, 255, 136, 0.03);
+    }
 
     .stat-n {
       font-family: var(--head);
-      font-size: 34px; font-weight: 700;
+      font-size: 34px;
+      font-weight: 700;
       letter-spacing: -0.03em;
       color: var(--green);
-      text-shadow: 0 0 20px rgba(0,255,136,0.4);
+      text-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
       margin-bottom: 6px;
     }
 
     .stat-l {
       font-family: var(--mono);
-      font-size: 10px; letter-spacing: 0.12em;
-      text-transform: uppercase; color: var(--gray);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray);
     }
 
     /* ═══════════════════════════════════════════════════════ */
     /* FEATURES                                                */
     /* ═══════════════════════════════════════════════════════ */
-    #features { padding: 120px 0; }
+    #features {
+      padding: 120px 0;
+    }
 
     .sec-hd {
       text-align: center;
       margin-bottom: 80px;
     }
 
-    .sec-hd .tag { margin-bottom: 28px; }
+    .sec-hd .tag {
+      margin-bottom: 28px;
+    }
 
     h2 {
       font-family: var(--head);
@@ -681,9 +939,11 @@
 
     .sec-sub {
       font-family: var(--mono);
-      font-size: 15px; line-height: 2;
+      font-size: 15px;
+      line-height: 2;
       color: var(--gray-lt);
-      max-width: 520px; margin: 0 auto;
+      max-width: 520px;
+      margin: 0 auto;
       letter-spacing: 0.02em;
     }
 
@@ -693,8 +953,17 @@
       gap: 20px;
     }
 
-    @media (max-width: 900px) { .feat-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 580px) { .feat-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) {
+      .feat-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 580px) {
+      .feat-grid {
+        grid-template-columns: 1fr;
+      }
+    }
 
     .feat {
       padding: 36px;
@@ -702,55 +971,71 @@
 
     .feat-big {
       grid-column: span 2;
-      background: linear-gradient(135deg, rgba(0,255,136,0.04) 0%, transparent 60%);
+      background: linear-gradient(135deg, rgba(0, 255, 136, 0.04) 0%, transparent 60%);
     }
 
-    @media (max-width: 900px) { .feat-big { grid-column: span 1; } }
+    @media (max-width: 900px) {
+      .feat-big {
+        grid-column: span 1;
+      }
+    }
 
     .feat-icon {
-      width: 52px; height: 52px;
+      width: 52px;
+      height: 52px;
       border-radius: 12px;
-      background: rgba(0,255,136,0.06);
-      border: 1px solid rgba(0,255,136,0.12);
-      display: grid; place-items: center;
+      background: rgba(0, 255, 136, 0.06);
+      border: 1px solid rgba(0, 255, 136, 0.12);
+      display: grid;
+      place-items: center;
       margin-bottom: 22px;
       font-size: 24px;
       transition: box-shadow 0.3s, border-color 0.3s;
     }
 
     .feat:hover .feat-icon {
-      border-color: rgba(0,255,136,0.3);
-      box-shadow: 0 0 16px rgba(0,255,136,0.15);
+      border-color: rgba(0, 255, 136, 0.3);
+      box-shadow: 0 0 16px rgba(0, 255, 136, 0.15);
     }
 
     .feat h3 {
-      font-size: 18px; font-weight: 600;
-      margin-bottom: 12px; letter-spacing: -0.01em;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
     }
 
     .feat p {
       font-family: var(--mono);
-      font-size: 13px; color: var(--gray-lt); line-height: 1.9;
+      font-size: 13px;
+      color: var(--gray-lt);
+      line-height: 1.9;
     }
 
     .chips {
-      display: flex; flex-wrap: wrap; gap: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
       margin-top: 18px;
     }
 
     .chip {
       font-family: var(--mono);
-      font-size: 10px; letter-spacing: 0.06em;
-      padding: 4px 10px; border-radius: 4px;
-      background: rgba(0,255,136,0.05);
-      border: 1px solid rgba(0,255,136,0.1);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: rgba(0, 255, 136, 0.05);
+      border: 1px solid rgba(0, 255, 136, 0.1);
       color: var(--green);
     }
 
     /* ═══════════════════════════════════════════════════════ */
     /* SECURITY                                                */
     /* ═══════════════════════════════════════════════════════ */
-    #security { padding: 120px 0; }
+    #security {
+      padding: 120px 0;
+    }
 
     .sec-split {
       display: grid;
@@ -759,107 +1044,166 @@
       align-items: center;
     }
 
-    @media (max-width: 768px) { .sec-split { grid-template-columns: 1fr; gap: 40px; } }
+    @media (max-width: 768px) {
+      .sec-split {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+    }
 
-    .sec-l h2 { text-align: left; }
+    .sec-l h2 {
+      text-align: left;
+    }
 
-    .check-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .check-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
 
     .check-list li {
-      display: flex; align-items: flex-start; gap: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
       font-family: var(--mono);
-      font-size: 12px; color: var(--gray-lt); line-height: 1.7;
+      font-size: 12px;
+      color: var(--gray-lt);
+      line-height: 1.7;
     }
 
     .ck {
-      flex-shrink: 0; margin-top: 2px;
-      width: 18px; height: 18px;
-      border: 1px solid rgba(0,255,136,0.3);
+      flex-shrink: 0;
+      margin-top: 2px;
+      width: 18px;
+      height: 18px;
+      border: 1px solid rgba(0, 255, 136, 0.3);
       border-radius: 4px;
-      background: rgba(0,255,136,0.05);
-      display: grid; place-items: center;
+      background: rgba(0, 255, 136, 0.05);
+      display: grid;
+      place-items: center;
     }
 
-    .ck svg { display: block; }
+    .ck svg {
+      display: block;
+    }
 
     .arch-box {
       padding: 28px;
       font-family: var(--mono);
-      font-size: 12px; line-height: 2;
+      font-size: 12px;
+      line-height: 2;
     }
 
-    .arch-box pre { white-space: pre-wrap; }
-    .ac { color: var(--green); }
-    .ad { color: var(--gray); }
-    .ae { color: #34d399; }
-    .af { color: #f87171; }
+    .arch-box pre {
+      white-space: pre-wrap;
+    }
+
+    .ac {
+      color: var(--green);
+    }
+
+    .ad {
+      color: var(--gray);
+    }
+
+    .ae {
+      color: #34d399;
+    }
+
+    .af {
+      color: #f87171;
+    }
 
     /* Horizontal green line divider */
     .divider {
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--green-dk), var(--green), var(--green-dk), transparent);
       opacity: 0.3;
-      max-width: 500px; margin: 0 auto;
+      max-width: 500px;
+      margin: 0 auto;
     }
 
     /* ═══════════════════════════════════════════════════════ */
     /* DOWNLOAD CTA                                            */
     /* ═══════════════════════════════════════════════════════ */
-    #download { padding: 120px 0; text-align: center; }
+    #download {
+      padding: 120px 0;
+      text-align: center;
+    }
 
     .dl-card {
-      max-width: 680px; margin: 0 auto;
+      max-width: 680px;
+      margin: 0 auto;
       padding: 72px 44px;
       border-radius: 28px;
-      position: relative; overflow: hidden;
-      background: rgba(0,255,136,0.02);
-      border: 1px solid rgba(0,255,136,0.1);
+      position: relative;
+      overflow: hidden;
+      background: rgba(0, 255, 136, 0.02);
+      border: 1px solid rgba(0, 255, 136, 0.1);
     }
 
     .dl-card::before {
       content: '';
-      position: absolute; top: -100px; left: 50%;
+      position: absolute;
+      top: -100px;
+      left: 50%;
       transform: translateX(-50%);
-      width: 400px; height: 300px;
-      background: radial-gradient(circle, rgba(0,255,136,0.08) 0%, transparent 70%);
+      width: 400px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(0, 255, 136, 0.08) 0%, transparent 70%);
       pointer-events: none;
     }
 
-    .dl-card h2 { margin-bottom: 14px; }
+    .dl-card h2 {
+      margin-bottom: 14px;
+    }
+
     .dl-card p {
       font-family: var(--mono);
-      font-size: 13px; color: var(--gray-lt);
-      line-height: 1.9; margin-bottom: 40px;
-      max-width: 380px; margin-left:auto; margin-right:auto;
+      font-size: 13px;
+      color: var(--gray-lt);
+      line-height: 1.9;
+      margin-bottom: 40px;
+      max-width: 380px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .dl-badges {
-      display: flex; justify-content: center;
-      flex-wrap: wrap; gap: 10px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-bottom: 16px;
     }
 
     .badge {
-      display: inline-flex; align-items: center; gap: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       padding: 12px 22px;
-      background: rgba(0,255,136,0.04);
-      border: 1px solid rgba(0,255,136,0.1);
+      background: rgba(0, 255, 136, 0.04);
+      border: 1px solid rgba(0, 255, 136, 0.1);
       border-radius: 10px;
-      text-decoration: none; color: var(--white);
-      font-family: var(--mono); font-size: 12px;
+      text-decoration: none;
+      color: var(--white);
+      font-family: var(--mono);
+      font-size: 12px;
       transition: all 0.3s;
     }
 
     .badge:hover {
-      background: rgba(0,255,136,0.08);
-      border-color: rgba(0,255,136,0.25);
-      box-shadow: 0 0 20px rgba(0,255,136,0.08);
+      background: rgba(0, 255, 136, 0.08);
+      border-color: rgba(0, 255, 136, 0.25);
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.08);
       transform: translateY(-2px);
     }
 
     .dl-note {
       font-family: var(--mono);
-      font-size: 10px; color: var(--gray);
+      font-size: 10px;
+      color: var(--gray);
       letter-spacing: 0.06em;
     }
 
@@ -868,190 +1212,304 @@
     /* ═══════════════════════════════════════════════════════ */
     footer {
       padding: 40px 0;
-      border-top: 1px solid rgba(0,255,136,0.06);
+      border-top: 1px solid rgba(0, 255, 136, 0.06);
     }
 
     .foot-in {
-      display: flex; align-items: center;
-      justify-content: space-between; flex-wrap: wrap; gap: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
     }
 
-    .foot-links { display: flex; gap: 20px; list-style: none; }
-    .foot-links a {
-      font-family: var(--mono); font-size: 11px;
-      letter-spacing: 0.06em; text-transform: uppercase;
-      color: var(--gray); text-decoration: none; transition: color 0.2s;
+    .foot-links {
+      display: flex;
+      gap: 20px;
+      list-style: none;
     }
-    .foot-links a:hover { color: var(--green); }
+
+    .foot-links a {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--gray);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .foot-links a:hover {
+      color: var(--green);
+    }
 
     .foot-copy {
-      font-family: var(--mono); font-size: 11px;
-      color: var(--gray); letter-spacing: 0.04em;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray);
+      letter-spacing: 0.04em;
     }
 
     /* ═══════════════════════════════════════════════════════ */
     /* INTRO CINEMATIC                                         */
     /* ═══════════════════════════════════════════════════════ */
-    body.intro-active { overflow: hidden; }
+    body.intro-active {
+      overflow: hidden;
+    }
 
     #intro {
-      position: fixed; inset: 0; z-index: 9999;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
       background: #000;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       gap: 32px;
     }
 
     #intro.fade-out {
-      animation: introFadeOut 0.9s cubic-bezier(0.4,0,0.2,1) forwards;
+      animation: introFadeOut 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
     @keyframes introFadeOut {
-      0%   { opacity:1; transform: translateY(0); }
-      100% { opacity:0; transform: translateY(-60px); }
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-60px);
+      }
     }
 
     .intro-eyebrow {
       font-family: var(--mono);
-      font-size: 10px; letter-spacing: 0.3em;
+      font-size: 10px;
+      letter-spacing: 0.3em;
       text-transform: uppercase;
-      color: rgba(0,255,136,0.4);
+      color: rgba(0, 255, 136, 0.4);
       animation: iUp 0.6s ease 0.2s both;
     }
 
     /* ── Intro phone ─────────────────────────────── */
     .intro-phone-wrap {
       position: relative;
-      animation: iPhoneIn 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
+      animation: iPhoneIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
     }
 
     @keyframes iPhoneIn {
-      from { transform: scale(0.04) translateY(120px); opacity:0; }
-      to   { transform: scale(1); opacity:1; }
+      from {
+        transform: scale(0.04) translateY(120px);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
 
     .intro-phone-wrap.shrink {
-      animation: iPhoneShrink 1s cubic-bezier(0.4,0,0.2,1) forwards;
+      animation: iPhoneShrink 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
     @keyframes iPhoneShrink {
-      0%   { transform: scale(1);    opacity:1; }
-      70%  { transform: scale(0.5) translateY(40px); opacity:0.6; }
-      100% { transform: scale(0.3) translateY(80px); opacity:0; }
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      70% {
+        transform: scale(0.5) translateY(40px);
+        opacity: 0.6;
+      }
+
+      100% {
+        transform: scale(0.3) translateY(80px);
+        opacity: 0;
+      }
     }
 
     .i-aura {
-      position: absolute; top:50%; left:50%;
-      transform: translate(-50%,-50%);
-      width: 360px; height: 360px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 360px;
+      height: 360px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,255,136,0.1) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, transparent 70%);
       animation: iAura 3s ease-in-out infinite;
     }
 
     @keyframes iAura {
-      0%,100% { transform: translate(-50%,-50%) scale(1); opacity:0.7; }
-      50%     { transform: translate(-50%,-50%) scale(1.25); opacity:1; }
+
+      0%,
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.7;
+      }
+
+      50% {
+        transform: translate(-50%, -50%) scale(1.25);
+        opacity: 1;
+      }
     }
 
     .i-phone {
-      width: 250px; height: 490px;
-      background: rgba(0,255,136,0.02);
-      border: 1.5px solid rgba(0,255,136,0.18);
+      width: 250px;
+      height: 490px;
+      background: rgba(0, 255, 136, 0.02);
+      border: 1.5px solid rgba(0, 255, 136, 0.18);
       border-radius: 42px;
-      position: relative; overflow: hidden;
+      position: relative;
+      overflow: hidden;
       box-shadow:
-        0 0 0 1px rgba(0,255,136,0.06),
-        0 0 80px rgba(0,255,136,0.18),
-        0 60px 100px rgba(0,0,0,0.95),
-        inset 0 1px 0 rgba(0,255,136,0.12);
+        0 0 0 1px rgba(0, 255, 136, 0.06),
+        0 0 80px rgba(0, 255, 136, 0.18),
+        0 60px 100px rgba(0, 0, 0, 0.95),
+        inset 0 1px 0 rgba(0, 255, 136, 0.12);
     }
 
     .i-notch {
-      position: absolute; top:0; left:50%;
+      position: absolute;
+      top: 0;
+      left: 50%;
       transform: translateX(-50%);
-      width: 88px; height: 7px;
-      background: rgba(0,255,136,0.18);
+      width: 88px;
+      height: 7px;
+      background: rgba(0, 255, 136, 0.18);
       border-radius: 0 0 6px 6px;
       z-index: 2;
     }
 
     .i-statusbar {
-      position: absolute; top: 14px; left: 0; right: 0;
-      display: flex; justify-content: space-between;
-      padding: 0 20px; z-index: 2;
-      font-family: var(--mono); font-size: 8px;
-      color: rgba(0,255,136,0.3); letter-spacing: 0.05em;
+      position: absolute;
+      top: 14px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 2;
+      font-family: var(--mono);
+      font-size: 8px;
+      color: rgba(0, 255, 136, 0.3);
+      letter-spacing: 0.05em;
     }
 
     .i-screen {
-      position: absolute; inset: 12px;
+      position: absolute;
+      inset: 12px;
       background: #000;
       border-radius: 32px;
       overflow: hidden;
-      border: 1px solid rgba(0,255,136,0.05);
+      border: 1px solid rgba(0, 255, 136, 0.05);
     }
 
     /* ── Stages ──────────────────────────────────── */
     .istage {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 18px; padding: 24px;
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 24px;
       opacity: 0;
       transform: scale(0.92);
       transition: opacity 0.35s ease, transform 0.35s ease;
       pointer-events: none;
     }
 
-    .istage.on  { opacity: 1; transform: scale(1); }
-    .istage.out { opacity: 0; transform: scale(1.06); }
+    .istage.on {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .istage.out {
+      opacity: 0;
+      transform: scale(1.06);
+    }
 
     /* Lock ring */
     .i-lock-ring {
-      width: 84px; height: 84px; border-radius: 50%;
-      border: 1.5px solid rgba(0,255,136,0.3);
-      background: rgba(0,255,136,0.04);
-      display: grid; place-items: center;
-      box-shadow: 0 0 28px rgba(0,255,136,0.2);
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0, 255, 136, 0.3);
+      background: rgba(0, 255, 136, 0.04);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 28px rgba(0, 255, 136, 0.2);
       animation: iLockPulse 2.5s ease-in-out infinite;
     }
 
     @keyframes iLockPulse {
-      0%,100% { box-shadow: 0 0 18px rgba(0,255,136,0.15); }
-      50%     { box-shadow: 0 0 42px rgba(0,255,136,0.45); }
+
+      0%,
+      100% {
+        box-shadow: 0 0 18px rgba(0, 255, 136, 0.15);
+      }
+
+      50% {
+        box-shadow: 0 0 42px rgba(0, 255, 136, 0.45);
+      }
     }
 
     /* Unlock ring */
     .i-unlock-ring {
-      width: 84px; height: 84px; border-radius: 50%;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
       border: 2px solid #00ff88;
-      background: rgba(0,255,136,0.07);
-      display: grid; place-items: center;
-      animation: iUnlockBurst 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
-      box-shadow: 0 0 60px rgba(0,255,136,0.55), inset 0 0 30px rgba(0,255,136,0.1);
+      background: rgba(0, 255, 136, 0.07);
+      display: grid;
+      place-items: center;
+      animation: iUnlockBurst 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      box-shadow: 0 0 60px rgba(0, 255, 136, 0.55), inset 0 0 30px rgba(0, 255, 136, 0.1);
     }
 
     @keyframes iUnlockBurst {
-      0%  { transform: scale(0.2); opacity:0; }
-      60% { transform: scale(1.18); }
-      100%{ transform: scale(1); opacity:1; }
+      0% {
+        transform: scale(0.2);
+        opacity: 0;
+      }
+
+      60% {
+        transform: scale(1.18);
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
 
     /* Bio ring */
     .i-bio-wrap {
-      position: relative; width: 90px; height: 90px;
+      position: relative;
+      width: 90px;
+      height: 90px;
     }
 
     /* Only the progress ring SVG — NOT the fingerprint inside .i-bio-center */
-    .i-bio-wrap > svg {
-      position: absolute; inset: 0;
+    .i-bio-wrap>svg {
+      position: absolute;
+      inset: 0;
       transform: rotate(-90deg);
     }
 
     .i-bio-center {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* Fingerprint SVG inside center: no rotation, no absolute positioning */
@@ -1060,9 +1518,16 @@
       transform: none;
     }
 
-    .bio-track { stroke: rgba(0,255,136,0.1); stroke-width: 2.5; fill: none; }
-    .bio-fill  {
-      stroke: #00ff88; stroke-width: 2.5; fill: none;
+    .bio-track {
+      stroke: rgba(0, 255, 136, 0.1);
+      stroke-width: 2.5;
+      fill: none;
+    }
+
+    .bio-fill {
+      stroke: #00ff88;
+      stroke-width: 2.5;
+      fill: none;
       stroke-linecap: round;
       stroke-dasharray: 251;
       stroke-dashoffset: 251;
@@ -1073,14 +1538,23 @@
       animation: iBioFill 1.0s ease 0.1s forwards;
     }
 
-    @keyframes iBioFill { to { stroke-dashoffset: 0; } }
+    @keyframes iBioFill {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
 
     /* PIN dots */
-    .i-dots { display: flex; gap: 10px; }
+    .i-dots {
+      display: flex;
+      gap: 10px;
+    }
 
     .i-dot {
-      width: 11px; height: 11px; border-radius: 50%;
-      border: 1.5px solid rgba(0,255,136,0.3);
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0, 255, 136, 0.3);
       transition: all 0.15s ease;
     }
 
@@ -1088,39 +1562,58 @@
       background: #00ff88;
       border-color: #00ff88;
       box-shadow: 0 0 8px #00ff88;
-      animation: iDotPop 0.2s cubic-bezier(0.34,1.56,0.64,1);
+      animation: iDotPop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     @keyframes iDotPop {
-      0%  { transform: scale(0.4); }
-      60% { transform: scale(1.4); }
-      100%{ transform: scale(1); }
+      0% {
+        transform: scale(0.4);
+      }
+
+      60% {
+        transform: scale(1.4);
+      }
+
+      100% {
+        transform: scale(1);
+      }
     }
 
     /* Labels */
     .i-label {
       font-family: var(--mono);
-      font-size: 10px; letter-spacing: 0.18em;
-      text-transform: uppercase; color: rgba(0,255,136,0.5);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(0, 255, 136, 0.5);
     }
 
     .i-label.success {
       color: #00ff88;
-      text-shadow: 0 0 14px rgba(0,255,136,0.7);
-      animation: iLabelPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+      text-shadow: 0 0 14px rgba(0, 255, 136, 0.7);
+      animation: iLabelPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     @keyframes iLabelPop {
-      0%  { transform: scale(0.7); }
-      60% { transform: scale(1.1); }
-      100%{ transform: scale(1); }
+      0% {
+        transform: scale(0.7);
+      }
+
+      60% {
+        transform: scale(1.1);
+      }
+
+      100% {
+        transform: scale(1);
+      }
     }
 
     /* Status text below phone */
     .intro-status {
       font-family: var(--mono);
-      font-size: 11px; letter-spacing: 0.12em;
-      color: rgba(0,255,136,0.35);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: rgba(0, 255, 136, 0.35);
       text-transform: uppercase;
       min-height: 16px;
       transition: opacity 0.3s;
@@ -1129,23 +1622,39 @@
 
     /* Skip */
     .intro-skip {
-      position: fixed; bottom: 28px; right: 28px;
-      font-family: var(--mono); font-size: 10px;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: rgba(0,255,136,0.28);
-      cursor: pointer; z-index: 10000;
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(0, 255, 136, 0.28);
+      cursor: pointer;
+      z-index: 10000;
       transition: color 0.2s;
       animation: iUp 0.5s ease 1.2s both;
       user-select: none;
     }
-    .intro-skip:hover { color: rgba(0,255,136,0.6); }
+
+    .intro-skip:hover {
+      color: rgba(0, 255, 136, 0.6);
+    }
 
     @keyframes iUp {
-      from { opacity:0; transform: translateY(14px); }
-      to   { opacity:1; transform: none; }
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
     }
   </style>
 </head>
+
 <body class="intro-active">
 
   <!-- ── CINEMATIC INTRO ──────────────────────────────────── -->
@@ -1164,12 +1673,20 @@
           <!-- Stage 1: LOCKED -->
           <div class="istage on" id="is1">
             <div class="i-lock-ring">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
             </div>
             <div class="i-label">VAULT LOCKED</div>
             <div class="i-dots">
-              <div class="i-dot"></div><div class="i-dot"></div><div class="i-dot"></div>
-              <div class="i-dot"></div><div class="i-dot"></div><div class="i-dot"></div>
+              <div class="i-dot"></div>
+              <div class="i-dot"></div>
+              <div class="i-dot"></div>
+              <div class="i-dot"></div>
+              <div class="i-dot"></div>
+              <div class="i-dot"></div>
             </div>
           </div>
 
@@ -1177,15 +1694,14 @@
           <div class="istage" id="is2">
             <div class="i-bio-wrap">
               <svg width="90" height="90" viewBox="0 0 90 90">
-                <circle class="bio-track" cx="45" cy="45" r="40"/>
-                <circle class="bio-fill" cx="45" cy="45" r="40"/>
+                <circle class="bio-track" cx="45" cy="45" r="40" />
+                <circle class="bio-fill" cx="45" cy="45" r="40" />
               </svg>
               <div class="i-bio-center">
                 <!-- Inlined fingerprint.svg — no external file needed -->
                 <svg width="36" height="36" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"
-                     style="filter: drop-shadow(0 0 4px rgba(0,255,136,0.6));">
-                  <path fill-rule="evenodd" clip-rule="evenodd"
-                    d="M10.0208 21V31C10.0208 31.5523 9.57305 32 9.02077 32C8.46848 32 8.02077 31.5523
+                  style="filter: drop-shadow(0 0 4px rgba(0,255,136,0.6));">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M10.0208 21V31C10.0208 31.5523 9.57305 32 9.02077 32C8.46848 32 8.02077 31.5523
                        8.02077 31V21C8.02077 12.7157 14.7365 6 23.0208 6H25.0208C28.1211 6 31.0832 6.94415
                        33.5756 8.67693C34.0291 8.99219 34.1411 9.61537 33.8258 10.0688C33.5106 10.5223
                        32.8874 10.6343 32.4339 10.3191C30.274 8.81739 27.7095 8 25.0208 8H23.0208C15.8411
@@ -1215,7 +1731,7 @@
                        30.4731 25.9524 31.0254ZM10.0004 36.995V41.043C10.0004 41.5953 9.55265 42.043
                        9.00037 42.043C8.44808 42.043 8.00037 41.5953 8.00037 41.043V36.995C8.00037
                        36.4427 8.44808 35.995 9.00037 35.995C9.55265 35.995 10.0004 36.4427 10.0004 36.995Z"
-                    fill="#00ff88"/>
+                    fill="#00ff88" />
                 </svg>
               </div>
 
@@ -1226,24 +1742,40 @@
           <!-- Stage 3: PIN ENTRY -->
           <div class="istage" id="is3">
             <div class="i-lock-ring">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
             </div>
             <div class="i-label">ENTER PIN</div>
             <div class="i-dots" id="pin-dots">
-              <div class="i-dot"></div><div class="i-dot"></div><div class="i-dot"></div>
-              <div class="i-dot"></div><div class="i-dot"></div><div class="i-dot"></div>
+              <div class="i-dot"></div>
+              <div class="i-dot"></div>
+              <div class="i-dot"></div>
+              <div class="i-dot"></div>
+              <div class="i-dot"></div>
+              <div class="i-dot"></div>
             </div>
           </div>
 
           <!-- Stage 4: UNLOCKED -->
           <div class="istage" id="is4">
             <div class="i-unlock-ring">
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+              </svg>
             </div>
             <div class="i-label success">ACCESS GRANTED</div>
             <div class="i-dots">
-              <div class="i-dot lit"></div><div class="i-dot lit"></div><div class="i-dot lit"></div>
-              <div class="i-dot lit"></div><div class="i-dot lit"></div><div class="i-dot lit"></div>
+              <div class="i-dot lit"></div>
+              <div class="i-dot lit"></div>
+              <div class="i-dot lit"></div>
+              <div class="i-dot lit"></div>
+              <div class="i-dot lit"></div>
+              <div class="i-dot lit"></div>
             </div>
           </div>
 
@@ -1272,8 +1804,10 @@
       <div class="nav-in">
         <a href="#" class="logo">
           <div class="logo-box">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
           </div>
           PIONEN
@@ -1284,7 +1818,8 @@
           <li><a href="#download">download</a></li>
           <li><a href="https://github.com/DkshByte/pionen" target="_blank" rel="noopener">github</a></li>
         </ul>
-        <a href="https://github.com/DkshByte/pionen/releases" class="btn btn-primary" style="padding:10px 20px;font-size:12px">
+        <a href="https://github.com/DkshByte/pionen/releases" class="btn btn-primary"
+          style="padding:10px 20px;font-size:12px">
           Download APK
         </a>
       </div>
@@ -1320,7 +1855,12 @@
           </p>
           <div class="hero-btns reveal" style="transition-delay:.24s">
             <a href="https://github.com/DkshByte/pionen/releases" class="btn btn-primary">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
               Download APK
             </a>
             <a href="https://github.com/DkshByte/pionen" target="_blank" rel="noopener" class="btn btn-ghost">
@@ -1340,7 +1880,8 @@
             </div>
             <div class="hbp-screen">
               <div class="hbp-lock-ring">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="1.8"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2"></rect>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
@@ -1373,11 +1914,26 @@
   <section class="stats">
     <div class="wrap">
       <div class="stats-grid reveal">
-        <div class="stat"><div class="stat-n">AES-256</div><div class="stat-l">Encryption</div></div>
-        <div class="stat"><div class="stat-n">100k</div><div class="stat-l">PBKDF2 Rounds</div></div>
-        <div class="stat"><div class="stat-n">2-FA</div><div class="stat-l">Bio + PIN</div></div>
-        <div class="stat"><div class="stat-n">~200ms</div><div class="stat-l">Panic Wipe</div></div>
-        <div class="stat"><div class="stat-n">0</div><div class="stat-l">Cloud Backup</div></div>
+        <div class="stat">
+          <div class="stat-n">AES-256</div>
+          <div class="stat-l">Encryption</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n">100k</div>
+          <div class="stat-l">PBKDF2 Rounds</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n">2-FA</div>
+          <div class="stat-l">Bio + PIN</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n">~200ms</div>
+          <div class="stat-l">Panic Wipe</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n">0</div>
+          <div class="stat-l">Cloud Backup</div>
+        </div>
       </div>
     </div>
   </section>
@@ -1397,7 +1953,8 @@
         <div class="glass feat feat-big reveal">
           <div class="feat-icon">🔐</div>
           <h3>AES-256-GCM Per-File Encryption</h3>
-          <p>Each file gets its own unique 256-bit key, generated inside the Android Keystore. Keys never leave secure hardware. Streaming encryption means even 4GB files never sit in plaintext RAM.</p>
+          <p>Each file gets its own unique 256-bit key, generated inside the Android Keystore. Keys never leave secure
+            hardware. Streaming encryption means even 4GB files never sit in plaintext RAM.</p>
           <div class="chips">
             <span class="chip">AES-256-GCM</span><span class="chip">Android Keystore</span>
             <span class="chip">StrongBox TEE</span><span class="chip">Random IV</span>
@@ -1408,25 +1965,29 @@
         <div class="glass feat reveal" style="transition-delay:.05s">
           <div class="feat-icon">🔑</div>
           <h3>Two-Factor Auth</h3>
-          <p>Biometric + mandatory 6-digit PIN. PBKDF2-SHA256 at 100,000 iterations with a 256-bit salt unique per installation.</p>
+          <p>Biometric + mandatory 6-digit PIN. PBKDF2-SHA256 at 100,000 iterations with a 256-bit salt unique per
+            installation.</p>
         </div>
 
         <div class="glass feat reveal" style="transition-delay:.1s">
           <div class="feat-icon">💣</div>
           <h3>Panic Wipe</h3>
-          <p>Shake the phone. Every key is destroyed in ~200ms. All files become irrecoverable — permanently and instantly.</p>
+          <p>Shake the phone. Every key is destroyed in ~200ms. All files become irrecoverable — permanently and
+            instantly.</p>
         </div>
 
         <div class="glass feat reveal" style="transition-delay:.15s">
           <div class="feat-icon">🎭</div>
           <h3>Stealth Mode</h3>
-          <p>Disguise as Calculator, Notes, or System Utilities. Switch icons instantly — the real app stays hidden in plain sight.</p>
+          <p>Disguise as Calculator, Notes, or System Utilities. Switch icons instantly — the real app stays hidden in
+            plain sight.</p>
         </div>
 
         <div class="glass feat reveal" style="transition-delay:.2s">
           <div class="feat-icon">🌐</div>
           <h3>Tor Private Browser</h3>
-          <p>Every browse session routed through Tor. No cookies, no history, no fingerprinting. Starts fresh every time.</p>
+          <p>Every browse session routed through Tor. No cookies, no history, no fingerprinting. Starts fresh every
+            time.</p>
         </div>
 
         <div class="glass feat reveal" style="transition-delay:.25s">
@@ -1459,20 +2020,58 @@
         <div class="sec-l reveal">
           <span class="tag" style="margin-bottom:20px;display:inline-flex">Security Design</span>
           <h2>Paranoid<br>by <span class="g">design.</span></h2>
-          <p class="sec-sub" style="text-align:left;max-width:100%;margin:0 0 32px">Every architectural decision starts from a threat model. No plaintext on disk. No key outside hardware. No telemetry, anywhere.</p>
+          <p class="sec-sub" style="text-align:left;max-width:100%;margin:0 0 32px">Every architectural decision starts
+            from a threat model. No plaintext on disk. No key outside hardware. No telemetry, anywhere.</p>
           <ul class="check-list">
-            <li><div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div><span><b style="color:var(--white)">No disk image cache</b> — Coil configured memory-only. Decrypted frames never touch storage.</span></li>
-            <li><div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div><span><b style="color:var(--white)">FLAG_SECURE global</b> — Screenshots, screen recorders, and recent-app thumbnails blocked everywhere.</span></li>
-            <li><div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div><span><b style="color:var(--white)">Zero cloud backup</b> — <code style="color:var(--green)">allowBackup=false</code>. All Android extraction rules blocked. No Google Drive sync possible.</span></li>
-            <li><div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div><span><b style="color:var(--white)">HTTPS-only networking</b> — Cleartext globally disabled. System CAs only. OS-level enforcement.</span></li>
-            <li><div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div><span><b style="color:var(--white)">Zero logcat in release</b> — All logs stripped by R8 + BuildConfig. Zero metadata leaks in prod builds.</span></li>
-            <li><div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div><span><b style="color:var(--white)">Auto-lock on background</b> — Vault locks instantly when app leaves foreground. No timeout grace period.</span></li>
+            <li>
+              <div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88"
+                  stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg></div><span><b style="color:var(--white)">No disk image cache</b> — Coil configured memory-only.
+                Decrypted frames never touch storage.</span>
+            </li>
+            <li>
+              <div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88"
+                  stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg></div><span><b style="color:var(--white)">FLAG_SECURE global</b> — Screenshots, screen recorders,
+                and recent-app thumbnails blocked everywhere.</span>
+            </li>
+            <li>
+              <div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88"
+                  stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg></div><span><b style="color:var(--white)">Zero cloud backup</b> — <code
+                  style="color:var(--green)">allowBackup=false</code>. All Android extraction rules blocked. No Google
+                Drive sync possible.</span>
+            </li>
+            <li>
+              <div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88"
+                  stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg></div><span><b style="color:var(--white)">HTTPS-only networking</b> — Cleartext globally disabled.
+                System CAs only. OS-level enforcement.</span>
+            </li>
+            <li>
+              <div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88"
+                  stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg></div><span><b style="color:var(--white)">Zero logcat in release</b> — All logs stripped by R8 +
+                BuildConfig. Zero metadata leaks in prod builds.</span>
+            </li>
+            <li>
+              <div class="ck"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88"
+                  stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg></div><span><b style="color:var(--white)">Auto-lock on background</b> — Vault locks instantly when
+                app leaves foreground. No timeout grace period.</span>
+            </li>
           </ul>
         </div>
 
         <div class="reveal" style="transition-delay:.15s">
           <div class="glass arch-box">
-<pre>
+            <pre>
 <span class="ad">// Encryption Stack</span>
 
 <span class="ac">User Auth</span> <span class="ad">(Biometric + PIN)</span>
@@ -1515,12 +2114,26 @@
         <p>Free. Open source. No accounts. No telemetry.<br>No subscriptions. Just encryption.</p>
         <div class="dl-badges">
           <a href="https://github.com/DkshByte/pionen/releases" class="badge">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <div><div style="font-size:9px;color:var(--gray);margin-bottom:1px">DOWNLOAD FROM</div><div>GitHub Releases</div></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <div>
+              <div style="font-size:9px;color:var(--gray);margin-bottom:1px">DOWNLOAD FROM</div>
+              <div>GitHub Releases</div>
+            </div>
           </a>
           <a href="https://github.com/DkshByte/pionen" target="_blank" rel="noopener" class="badge">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#00ff88"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-            <div><div style="font-size:9px;color:var(--gray);margin-bottom:1px">BROWSE THE</div><div>Source Code</div></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#00ff88">
+              <path
+                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+            </svg>
+            <div>
+              <div style="font-size:9px;color:var(--gray);margin-bottom:1px">BROWSE THE</div>
+              <div>Source Code</div>
+            </div>
           </a>
         </div>
         <div class="dl-note">Requires Android 8.0 (API 26) or higher · v1.0.0 · MIT License</div>
@@ -1534,7 +2147,11 @@
       <div class="foot-in">
         <a href="#" class="logo" style="font-size:14px">
           <div class="logo-box" style="width:24px;height:24px;border-radius:4px">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
           </div>
           PIONEN
         </a>
@@ -1552,14 +2169,16 @@
             Made by <span style="color:var(--green)">Daksh Sharma</span> ·
             <span style="color:rgba(0,255,136,0.5)">Completely built with AI</span>
           </span><br>
-          <a href="mailto:support@pionen.in"
-             style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;
+          <a href="mailto:support@pionen.in" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;
                     color:rgba(0,255,136,0.55);text-decoration:none;
                     margin-top:6px;display:inline-flex;align-items:center;gap:6px;
-                    transition:color 0.2s;"
-             onmouseover="this.style.color='#00ff88'"
-             onmouseout="this.style.color='rgba(0,255,136,0.55)'">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+                    transition:color 0.2s;" onmouseover="this.style.color='#00ff88'"
+            onmouseout="this.style.color='rgba(0,255,136,0.55)'">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="m2 7 10 7 10-7" />
+            </svg>
             support@pionen.in
           </a>
         </div>
@@ -1573,11 +2192,11 @@
     // ═══════════════════════════════════════════════════════
     // INTRO ANIMATION TIMELINE
     // ═══════════════════════════════════════════════════════
-    const introEl     = document.getElementById('intro');
-    const introPh     = document.getElementById('intro-phone-wrap');
-    const introStat   = document.getElementById('intro-status');
-    const introSkip   = document.getElementById('intro-skip');
-    const pinDots     = document.querySelectorAll('#pin-dots .i-dot');
+    const introEl = document.getElementById('intro');
+    const introPh = document.getElementById('intro-phone-wrap');
+    const introStat = document.getElementById('intro-status');
+    const introSkip = document.getElementById('intro-skip');
+    const pinDots = document.querySelectorAll('#pin-dots .i-dot');
 
     function setStage(nextId) {
       document.querySelectorAll('.istage').forEach(s => {
@@ -1611,11 +2230,11 @@
 
     // Timeline
     const T = {
-      bio    : 1100,   // biometric stage
-      pin    : 2100,   // PIN entry stage
+      bio: 1100,   // biometric stage
+      pin: 2100,   // PIN entry stage
       pinFill: 2350,   // dots fill
-      unlock : 3250,   // access granted
-      exit   : 3900,   // intro exits
+      unlock: 3250,   // access granted
+      exit: 3900,   // intro exits
     };
 
     setTimeout(() => { setStage('is2'); introStat.textContent = 'Biometric verified...'; }, T.bio);
@@ -1629,16 +2248,16 @@
     // PARALLAX + MAIN PAGE LOGIC
     // ═══════════════════════════════════════════════════════
     // ── Elements ─────────────────────────────────────────────
-    const nav       = document.getElementById('nav');
+    const nav = document.getElementById('nav');
     const blobLayer = document.getElementById('blob-layer');
-    const midLayer  = document.getElementById('mid-layer');
+    const midLayer = document.getElementById('mid-layer');
 
     // ── Scroll: nav glass + subtle background depth ───────────
     window.addEventListener('scroll', () => {
       const sy = window.scrollY;
       nav.classList.toggle('s', sy > 50);
       blobLayer.style.transform = `translate3d(0,${sy * 0.06}px,0)`;
-      midLayer.style.transform  = `translate3d(0,${sy * 0.10}px,0)`;
+      midLayer.style.transform = `translate3d(0,${sy * 0.10}px,0)`;
     }, { passive: true });
 
 
@@ -1655,10 +2274,10 @@
     // ── Mouse micro-parallax on cards ────────────────────────
     document.querySelectorAll('.glass').forEach(card => {
       card.addEventListener('mousemove', (e) => {
-        const r  = card.getBoundingClientRect();
-        const cx = r.left + r.width  / 2;
-        const cy = r.top  + r.height / 2;
-        const dx = (e.clientX - cx) / (r.width  / 2);
+        const r = card.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const dx = (e.clientX - cx) / (r.width / 2);
         const dy = (e.clientY - cy) / (r.height / 2);
         card.style.transform = `translateY(-5px) rotateX(${-dy * 4}deg) rotateY(${dx * 4}deg)`;
         card.style.transition = 'transform 0.1s ease-out, border-color 0.35s, box-shadow 0.35s';
@@ -1670,4 +2289,5 @@
     });
   </script>
 </body>
+
 </html>

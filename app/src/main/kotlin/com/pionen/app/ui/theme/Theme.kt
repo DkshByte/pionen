@@ -17,27 +17,27 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 // ============================================
-// PIONEN THEME — Cobalt Blue + Full Dark/Light
+// PIONEN THEME — Neon Green + Liquid Glass
 // ============================================
 
 private val PionenDarkColorScheme = darkColorScheme(
-    // Primary — Cobalt Blue (logo brand color)
-    primary              = PionenBlueLight,     // Lighter on dark for readability
-    onPrimary            = Color.White,
-    primaryContainer     = PionenBlueDark,
-    onPrimaryContainer   = Color(0xFFD0D0FF),
+    // Primary — Neon Green
+    primary              = NeonGreen,
+    onPrimary            = Color.Black,
+    primaryContainer     = NeonGreenDark,
+    onPrimaryContainer   = NeonGreenLight,
 
-    // Secondary — Electric Blue
-    secondary            = PionenElectric,
-    onSecondary          = Color.White,
-    secondaryContainer   = Color(0xFF1A2A5E),
-    onSecondaryContainer = Color(0xFFB8D0FF),
+    // Secondary — Electric Cyan
+    secondary            = ElectricCyan,
+    onSecondary          = Color.Black,
+    secondaryContainer   = Color(0xFF003D4D),
+    onSecondaryContainer = Color(0xFFB8F0FF),
 
-    // Tertiary — Violet
-    tertiary             = PionenViolet,
-    onTertiary           = Color.White,
-    tertiaryContainer    = PionenVioletDark,
-    onTertiaryContainer  = Color(0xFFDDD0FF),
+    // Tertiary — Neon Purple
+    tertiary             = NeonPurple,
+    onTertiary           = Color.Black,
+    tertiaryContainer    = NeonPurpleDark,
+    onTertiaryContainer  = Color(0xFFE8D8FF),
 
     // Backgrounds
     background           = DarkBackground,
@@ -48,7 +48,7 @@ private val PionenDarkColorScheme = darkColorScheme(
     onSurface            = TextPrimary,
     surfaceVariant       = DarkSurfaceVariant,
     onSurfaceVariant     = TextSecondary,
-    surfaceTint          = PionenBlueLight.copy(alpha = 0.05f),
+    surfaceTint          = NeonGreen.copy(alpha = 0.03f),
 
     // Status
     error                = DestructiveRed,
@@ -60,30 +60,30 @@ private val PionenDarkColorScheme = darkColorScheme(
     outline              = TextTertiary,
     outlineVariant       = TextMuted,
 
-    // Inverse (snackbars, etc.)
+    // Inverse
     inverseSurface       = TextPrimary,
     inverseOnSurface     = DarkBackground,
-    inversePrimary       = PionenBlueDark,
+    inversePrimary       = NeonGreenDark,
 
     // Scrim
-    scrim                = Color.Black.copy(alpha = 0.6f)
+    scrim                = Color.Black.copy(alpha = 0.7f)
 )
 
 private val PionenLightColorScheme = lightColorScheme(
-    // Primary — Cobalt Blue (full brand strength on white)
-    primary              = PionenBlue,
+    // Primary — Neon Green (toned down for light)
+    primary              = NeonGreenDark,
     onPrimary            = Color.White,
-    primaryContainer     = Color(0xFFDDDDFF),
-    onPrimaryContainer   = Color(0xFF0A0870),
+    primaryContainer     = Color(0xFFB8FFD6),
+    onPrimaryContainer   = Color(0xFF003D1A),
 
-    // Secondary — Electric Blue
-    secondary            = PionenElectricDark,
+    // Secondary — Electric Cyan
+    secondary            = ElectricCyanDark,
     onSecondary          = Color.White,
-    secondaryContainer   = Color(0xFFD8E8FF),
-    onSecondaryContainer = Color(0xFF0A2060),
+    secondaryContainer   = Color(0xFFD0F5FF),
+    onSecondaryContainer = Color(0xFF003544),
 
-    // Tertiary — Violet
-    tertiary             = PionenVioletDark,
+    // Tertiary — Neon Purple
+    tertiary             = NeonPurpleDark,
     onTertiary           = Color.White,
     tertiaryContainer    = Color(0xFFE8D8FF),
     onTertiaryContainer  = Color(0xFF2A0860),
@@ -97,7 +97,7 @@ private val PionenLightColorScheme = lightColorScheme(
     onSurface            = LightTextPrimary,
     surfaceVariant       = LightSurfaceVariant,
     onSurfaceVariant     = LightTextSecondary,
-    surfaceTint          = PionenBlue.copy(alpha = 0.03f),
+    surfaceTint          = NeonGreenDark.copy(alpha = 0.03f),
 
     // Status
     error                = DestructiveRedDark,
@@ -112,7 +112,7 @@ private val PionenLightColorScheme = lightColorScheme(
     // Inverse
     inverseSurface       = LightTextPrimary,
     inverseOnSurface     = LightSurface,
-    inversePrimary       = PionenBlueLight,
+    inversePrimary       = NeonGreenLight,
 
     // Scrim
     scrim                = Color.Black.copy(alpha = 0.4f)
@@ -139,9 +139,9 @@ fun PionenTheme(
             val window = (view.context as Activity).window
             // Transparent status bar for edge-to-edge
             window.statusBarColor = Color.Transparent.toArgb()
-            // Navigation bar matches theme background
+            // Navigation bar — pixel style: pure black to blend with nav bar
             window.navigationBarColor = if (darkTheme) {
-                DarkBackground.toArgb()
+                PixelBarBackground.toArgb()
             } else {
                 LightBackground.toArgb()
             }

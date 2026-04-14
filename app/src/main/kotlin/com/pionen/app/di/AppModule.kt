@@ -43,18 +43,35 @@ object AppModule {
         val passphrase = databaseKeyProvider.getDatabaseKey()
         val factory = SupportFactory(passphrase)
         
-        return Room.databaseBuilder(
+        fun buildDb(): VaultDatabase = Room.databaseBuilder(
             context,
             VaultDatabase::class.java,
             "pionen_vault.db"
         )
             .openHelperFactory(factory)
-            // TODO: Replace with explicit addMigrations(...) before each schema change.
-            // Using destructive migration only as a safeguard for now; data is
-            // always recoverable because the vault files themselves are the source
-            // of truth — the DB only holds encrypted metadata.
             .fallbackToDestructiveMigration()
             .build()
+        
+        val db = buildDb()
+        
+        // Validate that the database can actually be opened with this key.
+        // If the key changed (e.g. EncryptedSharedPreferences was reset),
+        // SQLCipher will throw "file is not a database". In that case,
+        // delete the stale DB file and recreate. The DB only holds metadata;
+        // the actual encrypted vault files on disk are unaffected.
+        return try {
+            db.openHelper.writableDatabase
+            db
+        } catch (e: Exception) {
+            android.util.Log.e("AppModule", "Database key mismatch – resetting DB", e)
+            try { db.close() } catch (_: Exception) {}
+            val dbFile = context.getDatabasePath("pionen_vault.db")
+            dbFile.delete()
+            java.io.File("${dbFile.path}-journal").delete()
+            java.io.File("${dbFile.path}-wal").delete()
+            java.io.File("${dbFile.path}-shm").delete()
+            buildDb()
+        }
     }
     
     @Provides

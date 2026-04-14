@@ -1,6 +1,7 @@
 package com.pionen.app.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -22,23 +23,34 @@ import com.pionen.app.ui.screens.VaultScreen
 @Composable
 fun PionenNavHost(
     navController: NavHostController,
-    isLocked: Boolean
+    startDestination: String,
+    onNavigatingToVault: () -> Unit = {},
+    onVaultSettled: () -> Unit = {}
 ) {
     NavHost(
         navController = navController,
-        startDestination = if (isLocked) Screen.Lock.route else Screen.Vault.route
+        startDestination = startDestination
     ) {
         composable(Screen.Lock.route) {
             LockScreen(
                 onUnlocked = {
-                    navController.navigate(Screen.Vault.route) {
-                        popUpTo(Screen.Lock.route) { inclusive = true }
+                    try {
+                        onNavigatingToVault()
+                        navController.navigate(Screen.Vault.route) {
+                            popUpTo(Screen.Lock.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    } catch (e: Exception) {
+                        // Navigation safety net
                     }
                 }
             )
         }
         
         composable(Screen.Vault.route) {
+            LaunchedEffect(Unit) {
+                onVaultSettled()
+            }
             VaultScreen(
                 onFileClick = { fileId ->
                     navController.navigate(Screen.FileViewer.createRoute(fileId.toString()))
@@ -123,7 +135,8 @@ fun PionenNavHost(
                 onCancel = { navController.popBackStack() },
                 onWipeComplete = {
                     navController.navigate(Screen.Lock.route) {
-                        popUpTo(0) { inclusive = true }
+                        popUpTo(Screen.Vault.route) { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             )

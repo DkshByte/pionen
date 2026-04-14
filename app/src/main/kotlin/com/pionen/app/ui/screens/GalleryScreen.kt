@@ -122,7 +122,7 @@ fun GalleryScreen(
             }
         }
         
-        // Top bar (animated)
+        // Top bar — pixel style (animated)
         AnimatedVisibility(
             visible = showControls,
             enter = fadeIn() + slideInVertically(),
@@ -134,94 +134,99 @@ fun GalleryScreen(
                     .fillMaxWidth()
                     .background(
                         brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                            colors = listOf(Color.Black.copy(alpha = 0.8f), Color.Transparent)
+                            colors = listOf(Color.Black.copy(alpha = 0.9f), Color.Transparent)
                         )
                     )
                     .statusBarsPadding()
-                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Close button
-                    IconButton(
-                        onClick = onBack,
+                    // Close — pixel square button
+                    androidx.compose.foundation.layout.Box(
                         modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.1f))
+                            .size(36.dp)
+                            .background(Color.Black.copy(alpha = 0.6f))
+                            .border(1.dp, PixelBorderBright)
+                            .clickable(onClick = onBack),
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
-                    
-                    // File info
+
+                    // File info — pixel chip
                     if (viewableFiles.isNotEmpty()) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.weight(1f).padding(horizontal = 16.dp)
+                            modifier = Modifier.weight(1f).padding(horizontal = 12.dp)
                         ) {
                             Text(
                                 viewableFiles.getOrNull(pagerState.currentPage)?.fileName ?: "",
                                 color = Color.White,
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
-                            Text(
-                                "${pagerState.currentPage + 1} / ${viewableFiles.size}",
-                                color = Color.White.copy(alpha = 0.6f),
-                                style = MaterialTheme.typography.bodySmall
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .background(Color.Black.copy(alpha = 0.4f))
+                                    .border(1.dp, NeonGreen.copy(alpha = 0.3f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    "${pagerState.currentPage + 1} / ${viewableFiles.size}",
+                                    color = NeonGreen,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace)
+                                )
+                            }
                         }
                     }
-                    
-                    // Actions
-                    Row {
-                        IconButton(
-                            onClick = {
-                                viewableFiles.getOrNull(pagerState.currentPage)?.let {
-                                    // Share action would go here
-                                }
-                            },
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.1f))
-                        ) {
-                            Icon(
-                                Icons.Default.Share,
-                                contentDescription = "Share",
-                                tint = Color.White
-                            )
-                        }
+
+                    // Share — pixel square button
+                    androidx.compose.foundation.layout.Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(Color.Black.copy(alpha = 0.6f))
+                            .border(1.dp, PixelBorderBright)
+                            .clickable { viewableFiles.getOrNull(pagerState.currentPage)?.let {} },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Share,
+                            contentDescription = "Share",
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
             }
         }
         
-        // Bottom indicator dots (for <= 10 items)
+        // Bottom pixel indicator dots
         if (viewableFiles.size in 2..10 && showControls) {
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding()
-                    .padding(bottom = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(bottom = 28.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 repeat(viewableFiles.size) { index ->
+                    // Pixel squares instead of circles
                     Box(
                         modifier = Modifier
-                            .size(if (index == pagerState.currentPage) 8.dp else 6.dp)
-                            .clip(CircleShape)
+                            .size(width = if (index == pagerState.currentPage) 18.dp else 6.dp, height = 4.dp)
                             .background(
                                 if (index == pagerState.currentPage)
-                                    Color.White
+                                    NeonGreen
                                 else
                                     Color.White.copy(alpha = 0.3f)
                             )

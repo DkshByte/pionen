@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed as lazyItemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -23,22 +22,26 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pionen.app.core.vault.FileType
 import com.pionen.app.core.vault.VaultFile
 import com.pionen.app.ui.components.FileTypeFilter
-import com.pionen.app.ui.components.FloatingActionBar
-import com.pionen.app.ui.components.FloatingSettingsButton
+import com.pionen.app.ui.components.MinimalBottomBar
 import com.pionen.app.ui.components.SortOption
 import com.pionen.app.ui.components.WebAccessDialog
 import com.pionen.app.server.SecureWebServer
+import com.pionen.app.ui.screens.PixelBadge
 import com.pionen.app.ui.theme.*
 import com.pionen.app.ui.viewmodels.VaultViewModel
 import com.pionen.app.ui.viewmodels.WebServerViewModel
@@ -46,9 +49,11 @@ import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 
-/**
- * Premium vault screen with floating action bar and refined file cards.
- */
+// ============================================
+// VAULT SCREEN — Pixel Art Gen-Z
+// Dark grid · pixel icons · neon accents
+// ============================================
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VaultScreen(
@@ -64,41 +69,32 @@ fun VaultScreen(
     val files by viewModel.files.collectAsState(initial = emptyList())
     val vaultStats by viewModel.vaultStats.collectAsState()
     var showDeleteDialog by remember { mutableStateOf<VaultFile?>(null) }
-    var fabExpanded by remember { mutableStateOf(false) }
-    
-    // Web server state
+
     val serverState by webServerViewModel.serverState.collectAsState()
     val serverInfo by webServerViewModel.serverInfo.collectAsState()
     val qrCodeBitmap by webServerViewModel.qrCodeBitmap.collectAsState()
     val showWebAccessDialog by webServerViewModel.showDialog.collectAsState()
-    
-    // Floating bar state
+
+    var showDashboard by remember { mutableStateOf(true) }
+
     var selectedFilter by remember { mutableStateOf(FileTypeFilter.ALL) }
     var searchQuery by remember { mutableStateOf("") }
     var isGridView by remember { mutableStateOf(true) }
     var sortOption by remember { mutableStateOf(SortOption.DATE_DESC) }
-    
-    // Filter and sort the files
+
     val filteredFiles = remember(files, selectedFilter, searchQuery, sortOption) {
         files
             .filter { file ->
-                // Filter by type
                 when (selectedFilter) {
                     FileTypeFilter.ALL -> true
                     FileTypeFilter.IMAGES -> file.mimeType.startsWith("image/")
                     FileTypeFilter.VIDEOS -> file.mimeType.startsWith("video/")
                     FileTypeFilter.AUDIO -> file.mimeType.startsWith("audio/")
-                    FileTypeFilter.DOCUMENTS -> file.mimeType.startsWith("application/") || 
-                            file.mimeType.startsWith("text/")
+                    FileTypeFilter.DOCUMENTS -> file.mimeType.startsWith("application/") || file.mimeType.startsWith("text/")
                 }
             }
-            .filter { file ->
-                // Filter by search query
-                searchQuery.isEmpty() || 
-                file.fileName.contains(searchQuery, ignoreCase = true)
-            }
+            .filter { file -> searchQuery.isEmpty() || file.fileName.contains(searchQuery, ignoreCase = true) }
             .let { filtered ->
-                // Sort
                 when (sortOption) {
                     SortOption.DATE_DESC -> filtered.sortedByDescending { it.createdAt }
                     SortOption.DATE_ASC -> filtered.sortedBy { it.createdAt }
@@ -109,219 +105,81 @@ fun VaultScreen(
                 }
             }
     }
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBackground)
     ) {
-        // Main content
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 140.dp)  // Space for floating bar at bottom
+                .padding(bottom = 66.dp)  // Space for bottom nav (64dp bar + 2dp border)
         ) {
-            
-            // Vault stats header
-            vaultStats?.let { stats ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            "Pionen Vault",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = TextPrimary
-                        )
-                        Text(
-                            text = "${stats.fileCount} files • ${formatSize(stats.totalOriginalSize)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
-                        )
-                    }
-                    
-                    // Active filter indicator
-                    if (selectedFilter != FileTypeFilter.ALL || searchQuery.isNotEmpty()) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = VaultGreen.copy(alpha = 0.15f)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.FilterList,
-                                    contentDescription = null,
-                                    tint = VaultGreen,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Text(
-                                    "${filteredFiles.size} results",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = VaultGreen
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // File content
-            Box(modifier = Modifier.weight(1f)) {
-                if (filteredFiles.isEmpty()) {
-                    if (files.isEmpty()) {
-                        EmptyVaultState()
+            // ─── TOP HEADER ───
+            PixelDashboardHeader(
+                fileCount = vaultStats?.fileCount ?: 0,
+                showDashboard = showDashboard,
+                onSettingsClick = onSettingsClick,
+                onBackToGrid = { showDashboard = true }
+            )
+
+            // ─── CONTENT ───
+            AnimatedContent(
+                targetState = showDashboard,
+                transitionSpec = {
+                    if (targetState) {
+                        (fadeIn(tween(250)) + slideInHorizontally { -it / 4 }) togetherWith
+                                (fadeOut(tween(180)) + slideOutHorizontally { it / 4 })
                     } else {
-                        // No files match filter
-                        NoResultsState(onClearFilter = {
-                            selectedFilter = FileTypeFilter.ALL
-                            searchQuery = ""
-                        })
+                        (fadeIn(tween(250)) + slideInHorizontally { it / 4 }) togetherWith
+                                (fadeOut(tween(180)) + slideOutHorizontally { -it / 4 })
                     }
-                } else if (isGridView) {
-                    // Grid view
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        itemsIndexed(
-                            items = filteredFiles,
-                            key = { _, file -> file.id }
-                        ) { index, file ->
-                            var isVisible by remember(file.id) { mutableStateOf(false) }
-                            LaunchedEffect(file.id) {
-                                isVisible = true
-                            }
-                            
-                            androidx.compose.animation.AnimatedVisibility(
-                                visible = isVisible,
-                                enter = fadeIn(animationSpec = tween(
-                                    durationMillis = PionenAnimations.NORMAL,
-                                    delayMillis = staggeredDelay(index, PionenAnimations.STAGGER_DELAY)
-                                )) +
-                                        slideInVertically(
-                                            animationSpec = tween(
-                                                durationMillis = PionenAnimations.NORMAL,
-                                                delayMillis = staggeredDelay(index, PionenAnimations.STAGGER_DELAY),
-                                                easing = PionenEasing.EaseOut
-                                            ),
-                                            initialOffsetY = { it / 4 }
-                                        ) +
-                                        scaleIn(
-                                            animationSpec = tween(
-                                                durationMillis = PionenAnimations.NORMAL,
-                                                delayMillis = staggeredDelay(index, PionenAnimations.STAGGER_DELAY)
-                                            ),
-                                            initialScale = 0.9f
-                                        )
-                            ) {
-                                val fileType = FileType.fromMimeType(file.mimeType)
-                                val isViewable = fileType == FileType.IMAGE || fileType == FileType.VIDEO || fileType == FileType.TEXT
-                                PremiumFileCard(
-                                    file = file,
-                                    onClick = {
-                                        if (isViewable) {
-                                            // Find index in viewable files for gallery
-                                            val viewableFiles = filteredFiles.filter { f ->
-                                                val t = FileType.fromMimeType(f.mimeType)
-                                                t == FileType.IMAGE || t == FileType.VIDEO || t == FileType.TEXT
-                                            }
-                                            val galleryIndex = viewableFiles.indexOfFirst { it.id == file.id }.coerceAtLeast(0)
-                                            onGalleryClick(galleryIndex)
-                                        } else {
-                                            onFileClick(file.id)
-                                        }
-                                    },
-                                    onDelete = { showDeleteDialog = file }
-                                )
-                            }
-                        }
-                    }
+                },
+                label = "viewSwitch"
+            ) { isDashboard ->
+                if (isDashboard) {
+                    PixelDashboardGrid(
+                        fileCount = files.size,
+                        totalSize = vaultStats?.totalOriginalSize ?: 0L,
+                        onVaultFilesClick = { showDashboard = false },
+                        onCameraClick = onCameraClick,
+                        onGalleryClick = { if (files.isNotEmpty()) onGalleryClick(0) else showDashboard = false },
+                        onBrowserClick = onBrowserClick,
+                        onDownloadClick = onDownloadClick,
+                        onWebAccessClick = { webServerViewModel.showDialog() },
+                        isServerRunning = serverState is SecureWebServer.ServerState.Running
+                    )
                 } else {
-                    // List view
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        lazyItemsIndexed(
-                            items = filteredFiles,
-                            key = { _, file -> file.id }
-                        ) { index, file ->
-                            var isVisible by remember(file.id) { mutableStateOf(false) }
-                            LaunchedEffect(file.id) {
-                                isVisible = true
-                            }
-                            
-                            androidx.compose.animation.AnimatedVisibility(
-                                visible = isVisible,
-                                enter = fadeIn(animationSpec = tween(
-                                    durationMillis = PionenAnimations.NORMAL,
-                                    delayMillis = staggeredDelay(index, PionenAnimations.STAGGER_DELAY)
-                                )) + slideInHorizontally(
-                                    animationSpec = tween(
-                                        durationMillis = PionenAnimations.NORMAL,
-                                        delayMillis = staggeredDelay(index, PionenAnimations.STAGGER_DELAY),
-                                        easing = PionenEasing.EaseOut
-                                    ),
-                                    initialOffsetX = { -it / 4 }
-                                )
-                            ) {
-                                val fileType = FileType.fromMimeType(file.mimeType)
-                                val isViewable = fileType == FileType.IMAGE || fileType == FileType.VIDEO || fileType == FileType.TEXT
-                                ListFileCard(
-                                    file = file,
-                                    onClick = {
-                                        if (isViewable) {
-                                            val viewableFiles = filteredFiles.filter { f ->
-                                                val t = FileType.fromMimeType(f.mimeType)
-                                                t == FileType.IMAGE || t == FileType.VIDEO || t == FileType.TEXT
-                                            }
-                                            val galleryIndex = viewableFiles.indexOfFirst { it.id == file.id }.coerceAtLeast(0)
-                                            onGalleryClick(galleryIndex)
-                                        } else {
-                                            onFileClick(file.id)
-                                        }
-                                    },
-                                    onDelete = { showDeleteDialog = file }
-                                )
-                            }
-                        }
-                    }
+                    PixelFileBrowserView(
+                        files = files,
+                        filteredFiles = filteredFiles,
+                        selectedFilter = selectedFilter,
+                        onFilterChange = { selectedFilter = it },
+                        searchQuery = searchQuery,
+                        onSearchQueryChange = { searchQuery = it },
+                        isGridView = isGridView,
+                        onViewToggle = { isGridView = !isGridView },
+                        sortOption = sortOption,
+                        onSortChange = { sortOption = it },
+                        onFileClick = onFileClick,
+                        onGalleryClick = onGalleryClick,
+                        onDelete = { showDeleteDialog = it }
+                    )
                 }
             }
         }
-        
-        // Floating Action Bar at bottom
-        FloatingActionBar(
-            files = files,
-            selectedFilter = selectedFilter,
-            onFilterChange = { selectedFilter = it },
-            searchQuery = searchQuery,
-            onSearchQueryChange = { searchQuery = it },
-            onRecentFileClick = { fileId -> onFileClick(fileId) },
-            onDownloadFromWeb = onBrowserClick,
-            onUrlDownload = onDownloadClick,
+
+        // Bottom nav bar
+        MinimalBottomBar(
+            showDashboard = showDashboard,
+            onHomeClick = { showDashboard = true },
             onCameraClick = onCameraClick,
-            onWebAccessClick = { webServerViewModel.showDialog() },
-            onSettingsClick = onSettingsClick,
-            isGridView = isGridView,
-            onViewToggle = { isGridView = !isGridView },
-            sortOption = sortOption,
-            onSortChange = { sortOption = it },
-            isServerRunning = serverState is SecureWebServer.ServerState.Running,
+            onFilesClick = { showDashboard = false },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
-    
-    // Web Access Dialog
+
     if (showWebAccessDialog) {
         WebAccessDialog(
             serverState = serverState,
@@ -332,461 +190,149 @@ fun VaultScreen(
             onDismiss = { webServerViewModel.hideDialog() }
         )
     }
-    
-    // Delete confirmation dialog
+
     showDeleteDialog?.let { file ->
-        PremiumDeleteDialog(
+        PixelDeleteDialog(
             file = file,
-            onConfirm = {
-                viewModel.deleteFile(file.id)
-                showDeleteDialog = null
-            },
+            onConfirm = { viewModel.deleteFile(file.id); showDeleteDialog = null },
             onDismiss = { showDeleteDialog = null }
         )
     }
 }
 
+// ─── HEADER ────────────────────────────────────
 @Composable
-private fun EmptyVaultState() {
-    // Pulsing animation for the icon
-    val infiniteTransition = rememberInfiniteTransition(label = "empty")
-    val iconScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = PionenEasing.EaseInOut),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "iconScale"
-    )
-    
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .scale(iconScale)
-                .clip(CircleShape)
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            DarkCard,
-                            DarkSurfaceVariant
-                        )
-                    )
-                )
-                .border(1.dp, GlassBorder.copy(alpha = 0.1f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Folder,
-                contentDescription = null,
-                modifier = Modifier.size(56.dp),
-                tint = TextMuted
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Text(
-            text = "Your vault is empty",
-            style = MaterialTheme.typography.titleLarge,
-            color = TextSecondary
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = "Capture photos or download files securely",
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextMuted
-        )
-    }
-}
-
-@Composable
-private fun NoResultsState(
-    onClearFilter: () -> Unit
+private fun PixelDashboardHeader(
+    fileCount: Int,
+    showDashboard: Boolean,
+    onSettingsClick: () -> Unit,
+    onBackToGrid: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape)
-                .background(DarkCard),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.SearchOff,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = TextMuted
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Text(
-            text = "No files found",
-            style = MaterialTheme.typography.titleLarge,
-            color = TextSecondary
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = "Try adjusting your filters or search",
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextMuted
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        TextButton(onClick = onClearFilter) {
-            Icon(
-                Icons.Default.FilterListOff,
-                contentDescription = null,
-                tint = VaultGreen,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Clear filters", color = VaultGreen)
-        }
-    }
-}
-
-@Composable
-private fun PremiumFabCluster(
-    expanded: Boolean,
-    onExpandChange: (Boolean) -> Unit,
-    onCameraClick: () -> Unit,
-    onBrowserClick: () -> Unit,
-    onDownloadClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // Secondary FABs with staggered animation
-        AnimatedVisibility(
-            visible = expanded,
-            enter = fadeIn(tween(200)) + slideInVertically(
-                animationSpec = tween(250, easing = PionenEasing.EaseOut),
-                initialOffsetY = { it }
-            ),
-            exit = fadeOut(tween(150)) + slideOutVertically(
-                animationSpec = tween(150),
-                targetOffsetY = { it }
-            )
-        ) {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Download FAB
-                SmallFloatingActionButton(
-                    onClick = {
-                        onDownloadClick()
-                        onExpandChange(false)
-                    },
-                    containerColor = SecureBlue,
-                    contentColor = Color.Black,
-                    shape = CircleShape
-                ) {
-                    Icon(Icons.Default.Download, contentDescription = "Download")
-                }
-                
-                // Browser FAB
-                SmallFloatingActionButton(
-                    onClick = {
-                        onBrowserClick()
-                        onExpandChange(false)
-                    },
-                    containerColor = AccentPurple,
-                    contentColor = Color.Black,
-                    shape = CircleShape
-                ) {
-                    Icon(Icons.Default.Language, contentDescription = "Browser")
-                }
-            }
-        }
-        
-        // Main Camera FAB with rotation animation
-        val rotation by animateFloatAsState(
-            targetValue = if (expanded) 45f else 0f,
-            animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
-            label = "fabRotation"
-        )
-        
-        FloatingActionButton(
-            onClick = {
-                if (expanded) {
-                    onCameraClick()
-                    onExpandChange(false)
-                } else {
-                    onExpandChange(true)
-                }
-            },
-            containerColor = VaultGreen,
-            contentColor = Color.Black,
-            shape = CircleShape
-        ) {
-            Icon(
-                imageVector = if (expanded) Icons.Default.Close else Icons.Default.Add,
-                contentDescription = if (expanded) "Close" else "Add",
-                modifier = Modifier.graphicsLayer { rotationZ = rotation }
-            )
-        }
-    }
-}
-
-@Composable
-private fun PremiumFileCard(
-    file: VaultFile,
-    onClick: () -> Unit,
-    onDelete: () -> Unit
-) {
-    // Use remember with file.id as key to maintain stability
-    val fileType = remember(file.mimeType) { FileType.fromMimeType(file.mimeType) }
-    val interactionSource = remember(file.id) { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    
-    val cardScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
-        label = "cardScale"
-    )
-    
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-            .graphicsLayer {
-                scaleX = cardScale
-                scaleY = cardScale
-            }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            ),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = DarkCard
-        )
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(14.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                // File type icon with gradient background
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    VaultGreenSubtle.copy(alpha = 0.5f),
-                                    VaultGreenSubtle.copy(alpha = 0.2f)
-                                )
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = getFileIcon(fileType),
-                        contentDescription = null,
-                        tint = VaultGreen,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                
-                // File info
-                Column {
-                    Text(
-                        text = file.fileName,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = TextPrimary,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "${file.formattedSize} • ${formatDate(file.createdAt)}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
-                    )
-                }
-            }
-            
-            // Delete button
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.align(Alignment.TopEnd)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = TextMuted,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-            
-            // Imported indicator
-            if (file.isImported) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(10.dp)
-                        .size(18.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(DestructiveRed.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = "Imported file",
-                        tint = DestructiveRed,
-                        modifier = Modifier.size(12.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-/**
- * List view file card - horizontal layout for list mode
- */
-@Composable
-private fun ListFileCard(
-    file: VaultFile,
-    onClick: () -> Unit,
-    onDelete: () -> Unit
-) {
-    val fileType = remember(file.mimeType) { FileType.fromMimeType(file.mimeType) }
-    val interactionSource = remember(file.id) { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    
-    val cardScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
-        label = "listCardScale"
-    )
-    
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = cardScale
-                scaleY = cardScale
-            }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            ),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = DarkCard
-        )
-    ) {
+    Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // File type icon
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                VaultGreenSubtle.copy(alpha = 0.5f),
-                                VaultGreenSubtle.copy(alpha = 0.2f)
-                            )
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = getFileIcon(fileType),
-                    contentDescription = null,
-                    tint = VaultGreen,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            
-            // File info
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = file.fileName,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = TextPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                AnimatedVisibility(
+                    visible = !showDashboard,
+                    enter = fadeIn(tween(200)) + scaleIn(tween(200)),
+                    exit = fadeOut(tween(150)) + scaleOut(tween(150))
                 ) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .background(DarkCard)
+                            .border(1.dp, PixelBorderBright)
+                            .clickable(onClick = onBackToGrid),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = NeonGreen, modifier = Modifier.size(18.dp))
+                    }
+                }
+
+                Column {
                     Text(
-                        text = file.formattedSize,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        text = if (showDashboard) "PIONEN" else "FILES",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 3.sp
+                        ),
+                        color = if (showDashboard) NeonGreen else TextPrimary
                     )
-                    Text(
-                        text = "•",
-                        color = TextMuted
-                    )
-                    Text(
-                        text = formatDate(file.createdAt),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
-                    )
-                    if (file.isImported) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = "Imported file",
-                            tint = DestructiveRed,
-                            modifier = Modifier.size(14.dp)
+                    if (showDashboard && fileCount > 0) {
+                        Text(
+                            text = "$fileCount files secured",
+                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                            color = TextSecondary
                         )
                     }
                 }
             }
-            
-            // Delete button
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.size(36.dp)
+
+            // Settings — pixel square button
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .drawBehind {
+                        drawRect(Color.Black, Offset(2f, 2f), size)
+                    }
+                    .background(DarkCard)
+                    .border(1.dp, PixelBorderBright)
+                    .clickable(onClick = onSettingsClick),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = TextMuted,
-                    modifier = Modifier.size(20.dp)
+                Icon(Icons.Outlined.Settings, contentDescription = "Settings", tint = TextSecondary, modifier = Modifier.size(18.dp))
+            }
+        }
+
+        // Pixel horizontal rule — neon + dark combo
+        Row(modifier = Modifier.fillMaxWidth().height(2.dp)) {
+            Box(modifier = Modifier.width(40.dp).fillMaxHeight().background(NeonGreen))
+            Box(modifier = Modifier.fillMaxSize().background(PixelBorderBright))
+        }
+    }
+}
+
+// ─── DASHBOARD GRID ────────────────────────────
+@Composable
+private fun PixelDashboardGrid(
+    fileCount: Int,
+    totalSize: Long,
+    onVaultFilesClick: () -> Unit,
+    onCameraClick: () -> Unit,
+    onGalleryClick: () -> Unit,
+    onBrowserClick: () -> Unit,
+    onDownloadClick: () -> Unit,
+    onWebAccessClick: () -> Unit,
+    isServerRunning: Boolean
+) {
+    data class CardData(val icon: ImageVector, val title: String, val subtitle: String, val accent: Color)
+
+    val cards = listOf(
+        CardData(Icons.Outlined.Lock, "VAULT", "$fileCount files", NeonGreen),
+        CardData(Icons.Outlined.CameraAlt, "CAMERA", "Capture", NeonGreen),
+        CardData(Icons.Outlined.PhotoLibrary, "GALLERY", "View media", ElectricCyan),
+        CardData(Icons.Outlined.Language, "BROWSER", "Secure surf", NeonPurple),
+        CardData(Icons.Outlined.Download, "DOWNLOAD", "Get files", ElectricCyan),
+        CardData(
+            Icons.Outlined.Wifi,
+            "WEB ACCESS",
+            if (isServerRunning) "● LIVE" else "Transfer",
+            if (isServerRunning) SafeGreen else NeonPurple
+        )
+    )
+
+    val callbacks = listOf(
+        onVaultFilesClick, onCameraClick, onGalleryClick,
+        onBrowserClick, onDownloadClick, onWebAccessClick
+    )
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        contentPadding = PaddingValues(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        itemsIndexed(cards) { index, card ->
+            var isVisible by remember { mutableStateOf(false) }
+            LaunchedEffect(Unit) { delay(index * 60L); isVisible = true }
+
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(tween(350)) + slideInVertically(tween(350, easing = PionenEasing.EaseOut)) { it / 2 }
+            ) {
+                PixelDashboardCard(
+                    icon = card.icon,
+                    title = card.title,
+                    subtitle = card.subtitle,
+                    accent = card.accent,
+                    onClick = callbacks[index]
                 )
             }
         }
@@ -794,93 +340,463 @@ private fun ListFileCard(
 }
 
 @Composable
-private fun PremiumDeleteDialog(
-    file: VaultFile,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+private fun PixelDashboardCard(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    accent: Color,
+    onClick: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = DarkCard,
-        icon = {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .drawBehind {
+                if (!isPressed) {
+                    drawRect(Color.Black, Offset(4f, 4f), size)
+                }
+            }
+            .background(DarkCard)
+            .border(1.dp, PixelBorderBright)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+    ) {
+        // Accent corner
+        Box(
+            modifier = Modifier
+                .size(4.dp)
+                .align(Alignment.TopStart)
+                .background(accent)
+        )
+        Box(
+            modifier = Modifier
+                .size(4.dp)
+                .align(Alignment.TopEnd)
+                .background(accent)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Icon box — pixel style
             Box(
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(DestructiveRed.copy(alpha = 0.15f)),
+                    .size(44.dp)
+                    .background(accent.copy(alpha = 0.12f))
+                    .border(1.dp, accent.copy(alpha = 0.35f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.DeleteForever,
-                    contentDescription = null,
-                    tint = DestructiveRed,
-                    modifier = Modifier.size(28.dp)
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = accent,
+                    modifier = Modifier.size(24.dp)
                 )
             }
-        },
-        title = {
-            Text(
-                "Crypto-Shred File?",
-                style = MaterialTheme.typography.titleLarge,
-                color = TextPrimary
-            )
-        },
-        text = {
+
             Column {
                 Text(
-                    "\"${file.fileName}\"",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = title,
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    ),
                     color = TextPrimary
                 )
-                Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    "The encryption key will be destroyed. This action is IRREVERSIBLE.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
                     color = TextSecondary
                 )
             }
+        }
+    }
+}
+
+// ─── FILE BROWSER ──────────────────────────────
+@Composable
+private fun PixelFileBrowserView(
+    files: List<VaultFile>,
+    filteredFiles: List<VaultFile>,
+    selectedFilter: FileTypeFilter,
+    onFilterChange: (FileTypeFilter) -> Unit,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    isGridView: Boolean,
+    onViewToggle: () -> Unit,
+    sortOption: SortOption,
+    onSortChange: (SortOption) -> Unit,
+    onFileClick: (UUID) -> Unit,
+    onGalleryClick: (Int) -> Unit,
+    onDelete: (VaultFile) -> Unit
+) {
+    var showSortDropdown by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Filter chips row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FileTypeFilter.entries.forEach { filter ->
+                val isSelected = selectedFilter == filter
+                Box(
+                    modifier = Modifier
+                        .drawBehind {
+                            if (isSelected) drawRect(NeonGreenDark, Offset(2f, 2f), size)
+                        }
+                        .background(if (isSelected) NeonGreen.copy(alpha = 0.15f) else DarkCard)
+                        .border(1.dp, if (isSelected) NeonGreen else PixelBorderBright)
+                        .clickable { onFilterChange(filter) }
+                        .padding(horizontal = 8.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        text = filter.label.uppercase(),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        ),
+                        color = if (isSelected) NeonGreen else TextSecondary
+                    )
+                }
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            // View toggle
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .background(DarkCard)
+                    .border(1.dp, PixelBorderBright)
+                    .clickable(onClick = onViewToggle),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    if (isGridView) Icons.Default.GridView else Icons.Default.ViewList,
+                    contentDescription = "Toggle view",
+                    tint = NeonGreen,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+
+            // Sort
+            Box {
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(DarkCard)
+                        .border(1.dp, PixelBorderBright)
+                        .clickable { showSortDropdown = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Sort, contentDescription = "Sort", tint = TextSecondary, modifier = Modifier.size(16.dp))
+                }
+
+                DropdownMenu(
+                    expanded = showSortDropdown,
+                    onDismissRequest = { showSortDropdown = false },
+                    modifier = Modifier.background(DarkCard)
+                ) {
+                    SortOption.entries.forEach { option ->
+                        DropdownMenuItem(
+                            leadingIcon = {
+                                if (sortOption == option) Icon(Icons.Default.Check, null, tint = NeonGreen)
+                            },
+                            text = {
+                                Text(
+                                    option.label,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                    color = if (sortOption == option) NeonGreen else TextPrimary
+                                )
+                            },
+                            onClick = { onSortChange(option); showSortDropdown = false }
+                        )
+                    }
+                }
+            }
+        }
+
+        // File list
+        Box(modifier = Modifier.weight(1f)) {
+            if (filteredFiles.isEmpty()) {
+                if (files.isEmpty()) PixelEmptyVaultState()
+                else PixelNoResultsState(onClearFilter = { onFilterChange(FileTypeFilter.ALL); onSearchQueryChange("") })
+            } else if (isGridView) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    itemsIndexed(items = filteredFiles, key = { _, f -> f.id }) { index, file ->
+                        var isVisible by remember(file.id) { mutableStateOf(false) }
+                        LaunchedEffect(file.id) { delay(staggeredDelay(index).toLong()); isVisible = true }
+                        val alpha by animateFloatAsState(
+                            targetValue = if (isVisible) 1f else 0f,
+                            animationSpec = tween(280),
+                            label = "gridAlpha$index"
+                        )
+                        val scale by animateFloatAsState(
+                            targetValue = if (isVisible) 1f else 0.92f,
+                            animationSpec = tween(280),
+                            label = "gridScale$index"
+                        )
+                        Box(modifier = Modifier.graphicsLayer { this.alpha = alpha; scaleX = scale; scaleY = scale }) {
+                            PixelGridFileCard(
+                                file = file,
+                                onClick = {
+                                    val ft = FileType.fromMimeType(file.mimeType)
+                                    val isViewable = ft == FileType.IMAGE || ft == FileType.VIDEO || ft == FileType.TEXT
+                                    if (isViewable) {
+                                        val viewable = filteredFiles.filter { f -> val t = FileType.fromMimeType(f.mimeType); t == FileType.IMAGE || t == FileType.VIDEO || t == FileType.TEXT }
+                                        onGalleryClick(viewable.indexOfFirst { it.id == file.id }.coerceAtLeast(0))
+                                    } else onFileClick(file.id)
+                                },
+                                onDelete = { onDelete(file) }
+                            )
+                        }
+                    }
+                }
+            } else {
+                LazyColumn(contentPadding = PaddingValues(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    lazyItemsIndexed(items = filteredFiles, key = { _, f -> f.id }) { index, file ->
+                        var isVisible by remember(file.id) { mutableStateOf(false) }
+                        LaunchedEffect(file.id) { delay(staggeredDelay(index).toLong()); isVisible = true }
+                        val alpha by animateFloatAsState(
+                            targetValue = if (isVisible) 1f else 0f,
+                            animationSpec = tween(260),
+                            label = "listAlpha$index"
+                        )
+                        val slideX by animateFloatAsState(
+                            targetValue = if (isVisible) 0f else -40f,
+                            animationSpec = tween(260, easing = PionenEasing.EaseOut),
+                            label = "listSlide$index"
+                        )
+                        Box(modifier = Modifier.graphicsLayer { this.alpha = alpha; translationX = slideX }) {
+                            PixelListFileCard(
+                                file = file,
+                                onClick = {
+                                    val ft = FileType.fromMimeType(file.mimeType)
+                                    val isViewable = ft == FileType.IMAGE || ft == FileType.VIDEO || ft == FileType.TEXT
+                                    if (isViewable) {
+                                        val viewable = filteredFiles.filter { f -> val t = FileType.fromMimeType(f.mimeType); t == FileType.IMAGE || t == FileType.VIDEO || t == FileType.TEXT }
+                                        onGalleryClick(viewable.indexOfFirst { it.id == file.id }.coerceAtLeast(0))
+                                    } else onFileClick(file.id)
+                                },
+                                onDelete = { onDelete(file) }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ─── FILE CARDS ────────────────────────────────
+@Composable
+private fun PixelGridFileCard(file: VaultFile, onClick: () -> Unit, onDelete: () -> Unit) {
+    val fileType = remember(file.mimeType) { FileType.fromMimeType(file.mimeType) }
+    val accent = fileTypeAccent(fileType)
+    val interactionSource = remember(file.id) { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .drawBehind { if (!isPressed) drawRect(Color.Black, Offset(3f, 3f), size) }
+            .background(DarkCard)
+            .border(1.dp, PixelBorderBright)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(12.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Box(
+                modifier = Modifier.size(40.dp)
+                    .background(accent.copy(alpha = 0.12f))
+                    .border(1.dp, accent.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(getFileIcon(fileType), null, tint = accent, modifier = Modifier.size(22.dp))
+            }
+
+            Column {
+                Text(
+                    text = file.fileName,
+                    style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
+                    color = TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "${file.formattedSize}",
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                    color = TextSecondary
+                )
+            }
+        }
+
+        IconButton(onClick = onDelete, modifier = Modifier.align(Alignment.TopEnd).size(30.dp)) {
+            Icon(Icons.Default.Delete, "Delete", tint = TextMuted, modifier = Modifier.size(14.dp))
+        }
+    }
+}
+
+@Composable
+private fun PixelListFileCard(file: VaultFile, onClick: () -> Unit, onDelete: () -> Unit) {
+    val fileType = remember(file.mimeType) { FileType.fromMimeType(file.mimeType) }
+    val accent = fileTypeAccent(fileType)
+    val interactionSource = remember(file.id) { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind { if (!isPressed) drawRect(Color.Black, Offset(3f, 3f), size) }
+            .background(DarkCard)
+            .border(1.dp, PixelBorderBright)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        // Left accent bar
+        Box(modifier = Modifier.width(3.dp).height(36.dp).background(accent))
+
+        Box(
+            modifier = Modifier.size(36.dp).background(accent.copy(alpha = 0.1f)).border(1.dp, accent.copy(alpha = 0.25f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(getFileIcon(fileType), null, tint = accent, modifier = Modifier.size(20.dp))
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(file.fileName, style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace), color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("${file.formattedSize} · ${formatDate(file.createdAt)}", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace), color = TextSecondary)
+        }
+
+        IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
+            Icon(Icons.Default.Delete, "Delete", tint = TextMuted, modifier = Modifier.size(16.dp))
+        }
+    }
+}
+
+// ─── EMPTY STATES ──────────────────────────────
+@Composable
+private fun PixelEmptyVaultState() {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier.size(80.dp).background(DarkCard).border(2.dp, NeonGreen.copy(alpha = 0.3f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Outlined.Folder, null, modifier = Modifier.size(44.dp), tint = TextMuted)
+        }
+        Spacer(Modifier.height(20.dp))
+        Text("VAULT EMPTY", style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 2.sp), color = TextSecondary)
+        Spacer(Modifier.height(6.dp))
+        Text("Capture or download to secure files", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), color = TextMuted)
+    }
+}
+
+@Composable
+private fun PixelNoResultsState(onClearFilter: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(modifier = Modifier.size(64.dp).background(DarkCard).border(1.dp, PixelBorderBright), contentAlignment = Alignment.Center) {
+            Icon(Icons.Outlined.SearchOff, null, Modifier.size(36.dp), tint = TextMuted)
+        }
+        Spacer(Modifier.height(16.dp))
+        Text("NO RESULTS", style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Monospace, letterSpacing = 2.sp), color = TextSecondary)
+        Spacer(Modifier.height(12.dp))
+        Box(
+            modifier = Modifier.drawBehind { drawRect(NeonGreenDark, Offset(3f, 3f), size) }
+                .background(NeonGreen).border(1.dp, Color.Black.copy(alpha = 0.2f))
+                .clickable(onClick = onClearFilter).padding(horizontal = 14.dp, vertical = 8.dp)
+        ) {
+            Text("CLEAR FILTER", style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold), color = Color.Black)
+        }
+    }
+}
+
+// ─── DELETE DIALOG ─────────────────────────────
+@Composable
+private fun PixelDeleteDialog(file: VaultFile, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = DarkCard,
+        shape = RoundedCornerShape(2.dp),
+        title = {
+            Text("CRYPTO-SHRED?", style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 2.sp), color = DestructiveRed)
+        },
+        text = {
+            Column {
+                Text("\"${file.fileName}\"", style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace), color = TextPrimary)
+                Spacer(Modifier.height(10.dp))
+                Text("The encryption key will be destroyed. This is IRREVERSIBLE.", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), color = TextSecondary)
+            }
         },
         confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = DestructiveRed
-                ),
-                shape = RoundedCornerShape(12.dp)
+            Box(
+                modifier = Modifier.background(DestructiveRed).border(1.dp, Color.Black.copy(alpha = 0.3f)).clickable(onClick = onConfirm).padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text("Destroy", color = Color.White)
+                Text("DESTROY", style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold), color = Color.White)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
+            Box(
+                modifier = Modifier.background(DarkCard).border(1.dp, PixelBorderBright).clickable(onClick = onDismiss).padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text("CANCEL", style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace), color = TextSecondary)
             }
         }
     )
 }
 
-private fun getFileIcon(fileType: FileType): ImageVector {
-    return when (fileType) {
-        FileType.IMAGE -> Icons.Default.Image
-        FileType.VIDEO -> Icons.Default.VideoFile
-        FileType.AUDIO -> Icons.Default.AudioFile
-        FileType.PDF -> Icons.Default.PictureAsPdf
-        FileType.TEXT -> Icons.Default.Description
-        FileType.DOCUMENT -> Icons.Default.Article
-        FileType.UNKNOWN -> Icons.Default.InsertDriveFile
-    }
+// ─── UTILITIES ─────────────────────────────────
+private fun fileTypeAccent(fileType: FileType): Color = when (fileType) {
+    FileType.IMAGE -> ElectricCyan
+    FileType.VIDEO -> NeonPurple
+    FileType.AUDIO -> WarningOrange
+    FileType.PDF -> DestructiveRed
+    FileType.TEXT -> NeonGreen
+    FileType.DOCUMENT -> NeonGreen
+    FileType.UNKNOWN -> TextSecondary
 }
 
-private fun formatSize(bytes: Long): String {
-    return when {
-        bytes < 1024 -> "$bytes B"
-        bytes < 1024 * 1024 -> "${bytes / 1024} KB"
-        bytes < 1024 * 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"
-        else -> String.format("%.2f GB", bytes / (1024.0 * 1024.0 * 1024.0))
-    }
+private fun getFileIcon(fileType: FileType): ImageVector = when (fileType) {
+    FileType.IMAGE -> Icons.Default.Image
+    FileType.VIDEO -> Icons.Default.VideoFile
+    FileType.AUDIO -> Icons.Default.AudioFile
+    FileType.PDF -> Icons.Default.PictureAsPdf
+    FileType.TEXT -> Icons.Default.Description
+    FileType.DOCUMENT -> Icons.Default.Article
+    FileType.UNKNOWN -> Icons.Default.InsertDriveFile
 }
 
-private fun formatDate(timestamp: Long): String {
-    val format = SimpleDateFormat("MMM d", Locale.getDefault())
-    return format.format(Date(timestamp))
+private fun formatSize(bytes: Long): String = when {
+    bytes < 1024 -> "$bytes B"
+    bytes < 1024 * 1024 -> "${bytes / 1024} KB"
+    bytes < 1024 * 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"
+    else -> String.format("%.2f GB", bytes / (1024.0 * 1024.0 * 1024.0))
 }
+
+private fun formatDate(timestamp: Long): String =
+    SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(timestamp))

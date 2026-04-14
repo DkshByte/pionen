@@ -1,5 +1,5 @@
 # ============================================================
-# Pionen - Android .gitignore
+# Pionen — Android .gitignore
 # ============================================================
 
 # ----- Secrets & Local Configuration -----
@@ -14,24 +14,26 @@ secrets.properties
 build/
 .gradle/
 app/build/
+app/release/          # signed APK outputs — never commit signed APKs to VCS
+
+# ----- Logs & Debug Artifacts -----
+*.log
+build_log.txt
+hs_err_pid*.log
+replay_pid*.log
+java_pid*.hprof
+
+# ----- APK / AAB / Profiling -----
+*.apk
+*.aab
+*.ap_
+*.hprof
 
 # ----- Android Studio IDE -----
 *.iml
 .idea/
-.idea/caches/
-.idea/libraries/
-.idea/workspace.xml
-.idea/modules.xml
-.idea/navEditor.xml
-.idea/assetWizardSettings.xml
-.idea/gradle.xml
 *.orig
 .DS_Store
-
-# ----- JVM Crash Logs (never commit these) -----
-hs_err_pid*.log
-replay_pid*.log
-java_pid*.hprof
 
 # ----- Dev Artifacts -----
 *.resolved
@@ -43,8 +45,8 @@ setup.ps1
 **/generated/
 **/kapt/
 
-# ----- Gradle Wrapper (keep gradlew, gradlew.bat, wrapper jar & props) -----
-# Do NOT ignore gradlew or gradle-wrapper files (they're needed for CI)
+# ----- Gradle Wrapper -----
+# Do NOT ignore gradlew, gradlew.bat, or gradle-wrapper files (needed for CI)
 
 # ----- OS Files -----
 Thumbs.db
@@ -54,20 +56,8 @@ $RECYCLE.BIN/
 .Spotlight-V100
 .Trashes
 .fseventsd
-.DS_Store
 .AppleDouble
 .LSOverride
-
-# ----- Logs -----
-*.log
-
-# ----- APK / AAB Output -----
-*.apk
-*.aab
-*.ap_
-
-# ----- Profiling -----
-*.hprof
 
 # ----- Test Results -----
 test-results/

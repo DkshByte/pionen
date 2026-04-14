@@ -3,112 +3,122 @@ package com.pionen.app.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // ============================================
-// PIONEN BRAND COLORS — Cobalt Blue Identity
-// Extracted from official Pionen logo (#2D2BCE)
+// PIONEN PIXEL-ART GEN-Z COLOR SYSTEM
+// Dark canvas · neon accents · pixel crisp
 // ============================================
 
-// Primary brand — Cobalt Blue (matches logo exactly)
-val PionenBlue         = Color(0xFF2D2BCE)   // Brand primary (logo color)
-val PionenBlueDark     = Color(0xFF1F1DA0)   // Darker variant for containers
-val PionenBlueLight    = Color(0xFF5654E8)   // Lighter variant for dark surfaces
-val PionenBlueMuted    = Color(0x402D2BCE)   // 25% opacity glow
+// ─── PRIMARY — Pixel Neon Green ───────────────
+val NeonGreen            = Color(0xFF00FF87)   // Primary neon green
+val NeonGreenDark        = Color(0xFF00CC6A)   // Darker shade
+val NeonGreenLight       = Color(0xFF66FFB2)   // Lighter tint
+val NeonGreenMuted       = Color(0x4000FF87)   // 25% opacity glow
+val NeonGreenSubtle      = Color(0x1A00FF87)   // 10% background tint
 
-// Secondary accent — Electric blue (lighter, energetic)
-val PionenElectric     = Color(0xFF4F8EFF)   // Bright interactive blue
-val PionenElectricDark = Color(0xFF3B6FE0)   // Pressed / dark variant
+// ─── SECONDARY — Electric Cyan ───────────────
+val ElectricCyan         = Color(0xFF00E5FF)
+val ElectricCyanDark     = Color(0xFF00B8D4)
 
-// Tertiary accent — Violet
-val PionenViolet       = Color(0xFF7C5CFC)   // Violet for highlights
-val PionenVioletDark   = Color(0xFF5E3FD8)   // Dark variant
+// ─── TERTIARY — Neon Purple ──────────────────
+val NeonPurple           = Color(0xFFBB86FC)
+val NeonPurpleDark       = Color(0xFF9C5CFC)
 
-// Status colors
-val DestructiveRed     = Color(0xFFF87171)   // Soft red, less harsh
-val DestructiveRedDark = Color(0xFFEF4444)   // Deeper red for buttons
-val WarningOrange      = Color(0xFFFBBF24)   // Warm amber
-val SafeGreen          = Color(0xFF34D399)   // Success green
+// ─── STATUS ──────────────────────────────────
+val DestructiveRed       = Color(0xFFF87171)
+val DestructiveRedDark   = Color(0xFFEF4444)
+val WarningOrange        = Color(0xFFFBBF24)
+val SafeGreen            = Color(0xFF34D399)
 
-// ============================================
-// DARK THEME SURFACE SYSTEM
-// Deep navy-black palette — security aesthetic
-// ============================================
+// ─── PIXEL DARK SURFACES ─────────────────────
+// True pixel-art style: very deep blacks with sharp steps
+val DarkBackground        = Color(0xFF080808)   // Near pure black
+val DarkSurface           = Color(0xFF0F0F0F)   // Step 1
+val DarkSurfaceVariant    = Color(0xFF161616)   // Step 2
+val DarkCard              = Color(0xFF1A1A1A)   // Card surface
+val DarkCardHover         = Color(0xFF212121)   // Pressed card
 
-val DarkBackground        = Color(0xFF080810)   // Deep navy-black base
-val DarkSurface           = Color(0xFF0E0E1A)   // First elevation
-val DarkSurfaceVariant    = Color(0xFF15151F)   // Second elevation (cards bg)
-val DarkCard              = Color(0xFF1C1C2A)   // Elevated card
-val DarkCardHover         = Color(0xFF232333)   // Card pressed/hover state
+// ─── PIXEL BORDER SYSTEM ─────────────────────
+// Sharp 1px or 2px borders like classic pixel UIs
+val PixelBorderBright     = Color(0xFF2A2A2A)   // Inner light border
+val PixelBorderDark       = Color(0xFF050505)   // Outer dark border (depth)
+val PixelBorderNeon       = Color(0xFF00FF87)   // Neon green 1px border
+val PixelBorderNeonFaint  = Color(0x3300FF87)   // Neon at 20%
 
-// Glassmorphism overlays
-val GlassSurface          = Color(0x1AFFFFFF)   // 10% white
-val GlassSurfaceHover     = Color(0x26FFFFFF)   // 15% white
-val GlassBorder           = Color(0x33FFFFFF)   // 20% white border
-val GlassBorderSubtle     = Color(0x1AFFFFFF)   // 10% white border
+// ─── LIQUID GLASS SYSTEM (for overlays only) ─
+val LiquidGlass           = Color(0x0DFFFFFF)
+val LiquidGlassLight      = Color(0x1AFFFFFF)
+val LiquidGlassMedium     = Color(0x26FFFFFF)
+val LiquidGlassHeavy      = Color(0x33FFFFFF)
 
-// Blue-tinted glassmorphism (branded)
-val BlueSurface           = Color(0x152D2BCE)   // 8% brand blue overlay
-val BlueBorder            = Color(0x402D2BCE)   // 25% brand blue border
+val GlassBorder           = Color(0x33FFFFFF)
+val GlassBorderSubtle     = Color(0x1AFFFFFF)
+val GlassBorderBright     = Color(0x4DFFFFFF)
 
-// ============================================
-// LIGHT THEME SURFACE SYSTEM
-// Clean white — minimal, open aesthetic
-// ============================================
+val NeonGlassSurface      = Color(0x0D00FF87)
+val NeonGlassBorder       = Color(0x3300FF87)
+val NeonGlassGlow         = Color(0x2600FF87)
 
-val LightBackground       = Color(0xFFF5F5FA)   // Soft off-white (not harsh)
-val LightSurface          = Color(0xFFFFFFFF)   // Pure white surface
-val LightSurfaceVariant   = Color(0xFFEEEEF8)   // Slight blue-tint variant
-val LightCard             = Color(0xFFFFFFFF)   // Card white
-val LightCardHover        = Color(0xFFF0F0FF)   // Card hover — blue tint
+// ─── LIGHT THEME (minimal) ───────────────────
+val LightBackground       = Color(0xFFF5F5FA)
+val LightSurface          = Color(0xFFFFFFFF)
+val LightSurfaceVariant   = Color(0xFFEEEEF8)
+val LightCard             = Color(0xFFFFFFFF)
+val LightCardHover        = Color(0xFFF0F0FF)
 
-// ============================================
-// TEXT COLORS — Shared across themes
-// ============================================
+// ─── TEXT ────────────────────────────────────
+val TextPrimary    = Color(0xFFF0F0F0)
+val TextSecondary  = Color(0xFF888888)
+val TextTertiary   = Color(0xFF505050)
+val TextMuted      = Color(0xFF303030)
 
-// Dark theme text
-val TextPrimary    = Color(0xFFF0F0FF)   // Near-white with blue tint
-val TextSecondary  = Color(0xFFA0A0C0)   // Muted blue-grey
-val TextTertiary   = Color(0xFF6060A0)   // Dimmer
-val TextMuted      = Color(0xFF404068)   // Very dim
+val LightTextPrimary   = Color(0xFF0A0A1A)
+val LightTextSecondary = Color(0xFF4A4A7A)
+val LightTextTertiary  = Color(0xFF7070A8)
+val LightTextMuted     = Color(0xFFA0A0C8)
 
-// Light theme text
-val LightTextPrimary   = Color(0xFF0A0A1A)   // Near-black with blue tint
-val LightTextSecondary = Color(0xFF4A4A7A)   // Mid blue-grey
-val LightTextTertiary  = Color(0xFF7070A8)   // Lighter
-val LightTextMuted     = Color(0xFFA0A0C8)   // Very light
-
-// ============================================
-// SPECIAL EFFECTS
-// ============================================
-
-// Gradient presets
-val GradientBrandStart = Color(0xFF2D2BCE)   // Brand blue
-val GradientBrandEnd   = Color(0xFF7C5CFC)   // Violet
-val GradientCyanEnd    = Color(0xFF00C6FF)   // Cyan for shimmer
+// ─── PIXEL GRADIENT PRESETS ──────────────────
+val GradientNeonStart   = Color(0xFF00FF87)
+val GradientNeonEnd     = Color(0xFF00E5FF)
+val GradientPurpleEnd   = Color(0xFFBB86FC)
+val GradientDarkStart   = Color(0xFF0A0A0A)
+val GradientDarkEnd     = Color(0xFF1A1A1A)
 
 // Shimmer / skeleton loading
-val ShimmerBase        = Color(0xFF1C1C2A)
-val ShimmerHighlight   = Color(0xFF2D2D42)
+val ShimmerBase        = Color(0xFF161616)
+val ShimmerHighlight   = Color(0xFF2A2A2A)
 
-// Floating bar — glassmorphism
-val FloatingBarBackground  = Color(0xE6100F1E)   // 90% dark navy
-val FloatingBarBorder      = Color(0x402D2BCE)   // 25% brand blue border
-val ActiveChipBackground   = Color(0x332D2BCE)   // Brand blue at 20%
+// ─── BOTTOM BAR ──────────────────────────────
+val PixelBarBackground  = Color(0xF0080808)   // 94% dark
+val PixelBarBorder      = Color(0xFF00FF87)   // Neon green top border (pixel style)
+val ActiveChipBackground= Color(0x2600FF87)
 
-// Incognito / browser theme
-val IncognitoBackground = Color(0xFF0D0D1A)
-val IncognitoSurface    = Color(0xFF181828)
-val IncognitoAccent     = Color(0xFF4F8EFF)
+// ─── BROWSER / INCOGNITO ─────────────────────
+val IncognitoBackground = Color(0xFF0A0A0A)
+val IncognitoSurface    = Color(0xFF141414)
+val IncognitoAccent     = Color(0xFF00E5FF)
 
-// ============================================
-// LEGACY ALIASES — Maintain backward compat
-// Code that still references VaultGreen will
-// now automatically use PionenBlue.
-// ============================================
+// ─── LEGACY ALIASES ──────────────────────────
+val VaultGreen        = NeonGreen
+val VaultGreenDark    = NeonGreenDark
+val VaultGreenSubtle  = Color(0xFF0A1A12)
+val VaultGreenGlow    = NeonGreenMuted
+val SecureBlue        = ElectricCyan
+val SecureBlueDark    = ElectricCyanDark
+val AccentPurple      = NeonPurple
+val AccentPurpleDark  = NeonPurpleDark
 
-val VaultGreen        = PionenBlue
-val VaultGreenDark    = PionenBlueDark
-val VaultGreenSubtle  = Color(0xFF12124A)   // Very dark blue (replaces green subtle)
-val VaultGreenGlow    = PionenBlueMuted
-val SecureBlue        = PionenElectric
-val SecureBlueDark    = PionenElectricDark
-val AccentPurple      = PionenViolet
-val AccentPurpleDark  = PionenVioletDark
+val PionenBlue         = NeonGreen
+val PionenBlueDark     = NeonGreenDark
+val PionenBlueLight    = NeonGreenLight
+val PionenBlueMuted    = NeonGreenMuted
+val PionenElectric     = ElectricCyan
+val PionenElectricDark = ElectricCyanDark
+val PionenViolet       = NeonPurple
+val PionenVioletDark   = NeonPurpleDark
+
+val GlassSurface       = LiquidGlass
+val GlassSurfaceHover  = LiquidGlassLight
+val BlueSurface        = NeonGlassSurface
+val BlueBorder         = NeonGlassBorder
+
+val FloatingBarBackground  = PixelBarBackground
+val FloatingBarBorder      = PixelBarBorder

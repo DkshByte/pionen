@@ -36,16 +36,20 @@ android {
     // environment variables as GitHub Actions secrets. See .github/workflows/ci.yml.
     signingConfigs {
         create("release") {
+            // Only configure when a keystore is actually available.
+            // storeFile MUST be set before any other property — setting it to null
+            // is what triggers the "missing storeFile" build error.
             val localStoreFile = keystoreProperties.getProperty("storeFile")
                 ?.let { file(it) }
                 ?: System.getenv("KEYSTORE_FILE")?.let { file(it) }
+
             if (localStoreFile != null) {
-                storeFile = localStoreFile
+                storeFile     = localStoreFile
                 storePassword = keystoreProperties.getProperty("storePassword")
                     ?: System.getenv("KEYSTORE_PASSWORD") ?: ""
-                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyAlias      = keystoreProperties.getProperty("keyAlias")
                     ?: System.getenv("KEY_ALIAS") ?: ""
-                keyPassword = keystoreProperties.getProperty("keyPassword")
+                keyPassword   = keystoreProperties.getProperty("keyPassword")
                     ?: System.getenv("KEY_PASSWORD") ?: ""
             }
         }
@@ -53,18 +57,23 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled    = true
+            isShrinkResources  = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
             buildConfigField("Boolean", "ENABLE_LOGGING", "false")
-            // Apply release signing when keystore.properties / env vars are present
+
+            // Only use the release signing config when a keystore is present.
+            // Without this guard, assigning the config unconditionally triggers
+            // "SigningConfig 'release' is missing required property storeFile".
             val releaseSigning = signingConfigs.getByName("release")
             if (releaseSigning.storeFile != null) {
                 signingConfig = releaseSigning
             }
+            // When no keystore is available (e.g. local dev / assembleDebug),
+            // Android Gradle falls back to the debug keystore automatically.
         }
         debug {
             buildConfigField("Boolean", "ENABLE_LOGGING", "true")

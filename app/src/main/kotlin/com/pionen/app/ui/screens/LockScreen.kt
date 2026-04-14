@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backspace
@@ -20,17 +19,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pionen.app.core.security.LockState
 import com.pionen.app.core.security.UnlockResult
 import com.pionen.app.ui.theme.*
 import com.pionen.app.ui.viewmodels.LockViewModel
@@ -38,8 +39,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * Premium Lock screen with elegant animations and glassmorphism design.
- * Two-factor authentication: Biometric (Step 1) + 6-digit PIN (Step 2)
+ * Pixel-art Gen-Z Lock Screen.
+ * Deep black background · neon green pixel accents · retro grid widget.
  */
 @Composable
 fun LockScreen(
@@ -48,86 +49,86 @@ fun LockScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    
+
     val lockState by viewModel.lockState.collectAsState()
     val failedAttempts by viewModel.failedAttempts.collectAsState()
     val biometricPassed by viewModel.biometricPassed.collectAsState()
     val isPinConfigured by viewModel.isPinConfigured.collectAsState()
-    
+
     var isAuthenticating by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var pinInput by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
-    
+    var hasNavigated by remember { mutableStateOf(false) }
+
     val biometricAvailable = remember { viewModel.isBiometricAvailable() }
-    
-    // Screen entrance animation
+
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        delay(100)
+        delay(80)
         isVisible = true
     }
-    
-    // Handle unlock state
-    LaunchedEffect(lockState) {
-        if (lockState is LockState.Unlocked) {
-            onUnlocked()
-        }
-    }
-    
-    // Auto-unlock if no security configured
+
     LaunchedEffect(biometricAvailable, isPinConfigured, biometricPassed) {
-        if (biometricPassed && !isPinConfigured) {
-            onUnlocked()
-        }
-        if (!biometricAvailable && !isPinConfigured) {
-            onUnlocked()
+        if (!hasNavigated) {
+            if (biometricPassed && !isPinConfigured) { hasNavigated = true; onUnlocked() }
+            if (!biometricAvailable && !isPinConfigured) { hasNavigated = true; onUnlocked() }
         }
     }
-    
-    // Error shake animation
+
     val shakeOffset by animateFloatAsState(
         targetValue = if (showError) 1f else 0f,
-        animationSpec = if (showError) {
-            spring(dampingRatio = 0.3f, stiffness = 800f)
-        } else {
-            tween(0)
-        },
+        animationSpec = if (showError) spring(dampingRatio = 0.3f, stiffness = 800f) else tween(0),
         label = "shake"
     )
-    
-    LaunchedEffect(showError) {
-        if (showError) {
-            delay(500)
-            showError = false
-        }
-    }
-    
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = DarkBackground
+    LaunchedEffect(showError) { if (showError) { delay(500); showError = false } }
+
+    // Scanline flicker
+    val infiniteTransition = rememberInfiniteTransition(label = "scanline")
+    val scanY by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "scanlineY"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkBackground)
     ) {
+        // Pixel scanline effect — subtle horizontal line that scrolls
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(2.dp)
+                .graphicsLayer { translationY = scanY * 2400f - 32f }
+                .background(NeonGreen.copy(alpha = 0.04f))
+        )
+
+        // Corner pixel decorations
+        PixelCornerDecor()
+
         AnimatedVisibility(
             visible = isVisible,
-            enter = fadeIn(animationSpec = tween(600, easing = PionenEasing.EaseOut)) +
-                    slideInVertically(
-                        animationSpec = tween(600, easing = PionenEasing.EaseOut),
-                        initialOffsetY = { it / 10 }
-                    ),
+            enter = fadeIn(animationSpec = tween(400)) +
+                    slideInVertically(animationSpec = tween(400, easing = PionenEasing.EaseOut), initialOffsetY = { it / 8 }),
             exit = fadeOut()
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(32.dp),
+                    .padding(horizontal = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 val showPinScreen = biometricPassed && isPinConfigured
-                
+
                 if (showPinScreen) {
-                    // ===== PIN ENTRY SCREEN =====
-                    PinEntryContent(
+                    PixelPinEntryContent(
                         pinInput = pinInput,
                         errorMessage = errorMessage,
                         shakeOffset = shakeOffset,
@@ -136,13 +137,19 @@ fun LockScreen(
                                 val newPin = pinInput + digit
                                 pinInput = newPin
                                 errorMessage = null
-                                
                                 if (newPin.length == 6) {
                                     scope.launch {
-                                        val success = viewModel.verifyPin(newPin)
-                                        if (!success) {
-                                            errorMessage = "Incorrect PIN. Try again."
-                                            showError = true
+                                        try {
+                                            val success = viewModel.verifyPin(newPin)
+                                            if (success) {
+                                                if (!hasNavigated) { hasNavigated = true; onUnlocked() }
+                                            } else {
+                                                errorMessage = "WRONG PIN — TRY AGAIN"
+                                                showError = true
+                                                pinInput = ""
+                                            }
+                                        } catch (e: Exception) {
+                                            errorMessage = "AUTH ERROR"
                                             pinInput = ""
                                         }
                                     }
@@ -150,45 +157,29 @@ fun LockScreen(
                             }
                         },
                         onDeleteClick = {
-                            if (pinInput.isNotEmpty()) {
-                                pinInput = pinInput.dropLast(1)
-                                errorMessage = null
-                            }
+                            if (pinInput.isNotEmpty()) { pinInput = pinInput.dropLast(1); errorMessage = null }
                         }
                     )
                 } else {
-                    // ===== BIOMETRIC SCREEN =====
-                    BiometricContent(
+                    PixelBiometricContent(
                         isPinConfigured = isPinConfigured,
                         biometricAvailable = biometricAvailable,
                         isAuthenticating = isAuthenticating,
                         errorMessage = errorMessage,
                         failedAttempts = failedAttempts,
                         onAuthenticate = {
-                            val activity = context as? FragmentActivity
-                            if (activity == null) {
-                                errorMessage = "Cannot authenticate"
-                                return@BiometricContent
-                            }
+                            val activity = context as? FragmentActivity ?: run { errorMessage = "Cannot authenticate"; return@PixelBiometricContent }
                             scope.launch {
                                 isAuthenticating = true
                                 errorMessage = null
                                 try {
                                     when (val result = viewModel.authenticateBiometric(activity)) {
-                                        is UnlockResult.Success -> {
-                                            isAuthenticating = false
-                                        }
-                                        is UnlockResult.Error -> {
-                                            errorMessage = result.message
-                                            isAuthenticating = false
-                                        }
-                                        is UnlockResult.TooManyAttempts -> {
-                                            errorMessage = "Too many failed attempts"
-                                            isAuthenticating = false
-                                        }
+                                        is UnlockResult.Success -> isAuthenticating = false
+                                        is UnlockResult.Error -> { errorMessage = result.message; isAuthenticating = false }
+                                        is UnlockResult.TooManyAttempts -> { errorMessage = "TOO MANY ATTEMPTS"; isAuthenticating = false }
                                     }
                                 } catch (e: Exception) {
-                                    errorMessage = e.message ?: "Authentication failed"
+                                    errorMessage = e.message ?: "AUTH FAILED"
                                     isAuthenticating = false
                                 }
                             }
@@ -200,8 +191,65 @@ fun LockScreen(
     }
 }
 
+// ────────────────────────────────────────────────
+// PIXEL CORNER DECORATIONS
+// ────────────────────────────────────────────────
 @Composable
-private fun BiometricContent(
+private fun PixelCornerDecor() {
+    val cornerColor = NeonGreen.copy(alpha = 0.25f)
+    val cornerSize = 20.dp
+    val borderWidth = 2.dp
+
+    // Top-left
+    Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .size(cornerSize)
+                .align(Alignment.TopStart)
+                .padding(12.dp)
+                .drawBehind {
+                    drawLine(cornerColor, Offset(0f, size.height), Offset(0f, 0f), strokeWidth = borderWidth.toPx())
+                    drawLine(cornerColor, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = borderWidth.toPx())
+                }
+        )
+        Box(
+            Modifier
+                .size(cornerSize)
+                .align(Alignment.TopEnd)
+                .padding(12.dp)
+                .drawBehind {
+                    drawLine(cornerColor, Offset(size.width, size.height), Offset(size.width, 0f), strokeWidth = borderWidth.toPx())
+                    drawLine(cornerColor, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = borderWidth.toPx())
+                }
+        )
+        Box(
+            Modifier
+                .size(cornerSize)
+                .align(Alignment.BottomStart)
+                .padding(12.dp)
+                .drawBehind {
+                    drawLine(cornerColor, Offset(0f, 0f), Offset(0f, size.height), strokeWidth = borderWidth.toPx())
+                    drawLine(cornerColor, Offset(0f, size.height), Offset(size.width, size.height), strokeWidth = borderWidth.toPx())
+                }
+        )
+        Box(
+            Modifier
+                .size(cornerSize)
+                .align(Alignment.BottomEnd)
+                .padding(12.dp)
+                .drawBehind {
+                    drawLine(cornerColor, Offset(size.width, 0f), Offset(size.width, size.height), strokeWidth = borderWidth.toPx())
+                    drawLine(cornerColor, Offset(0f, size.height), Offset(size.width, size.height), strokeWidth = borderWidth.toPx())
+                }
+        )
+    }
+}
+
+// ────────────────────────────────────────────────
+// BIOMETRIC CONTENT — Pixel Lock Icon + Button
+// ────────────────────────────────────────────────
+@Composable
+private fun PixelBiometricContent(
     isPinConfigured: Boolean,
     biometricAvailable: Boolean,
     isAuthenticating: Boolean,
@@ -209,196 +257,140 @@ private fun BiometricContent(
     failedAttempts: Int,
     onAuthenticate: () -> Unit
 ) {
-    // Pulsing glow for lock icon
-    val pulseAlpha = rememberPulseAnimation(enabled = true, minAlpha = 0.5f, maxAlpha = 1f)
-    
-    // Lock icon with glow
+    val pulseAlpha = rememberPulseAnimation(enabled = true, minAlpha = 0.6f, maxAlpha = 1f)
+
+    // ── Pixel shield icon ──
     Box(
         modifier = Modifier
-            .size(140.dp)
+            .size(96.dp)
             .graphicsLayer { alpha = pulseAlpha }
-            .background(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        VaultGreenGlow,
-                        Color.Transparent
-                    )
-                ),
-                shape = CircleShape
-            ),
+            // Outer pixel shadow (offset, solid, pixel-style)
+            .drawBehind {
+                drawRect(
+                    color = NeonGreen.copy(alpha = 0.15f),
+                    topLeft = Offset(4f, 4f),
+                    size = size
+                )
+            }
+            .background(DarkCard)
+            .border(2.dp, NeonGreen, RoundedCornerShape(0.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            DarkCard,
-                            DarkSurfaceVariant
-                        )
-                    )
-                )
-                .border(1.dp, GlassBorder, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Lock,
-                contentDescription = "Locked",
-                modifier = Modifier.size(48.dp),
-                tint = VaultGreen
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.Lock,
+            contentDescription = "Locked",
+            modifier = Modifier.size(48.dp),
+            tint = NeonGreen
+        )
     }
-    
-    Spacer(modifier = Modifier.height(40.dp))
-    
+
+    Spacer(modifier = Modifier.height(32.dp))
+
+    // App title — pixel / monospace feel
     Text(
-        text = "Pionen",
-        style = MaterialTheme.typography.displayMedium,
-        color = TextPrimary
+        text = "PIONEN",
+        style = MaterialTheme.typography.displaySmall.copy(
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 8.sp
+        ),
+        color = NeonGreen
     )
-    
-    Spacer(modifier = Modifier.height(8.dp))
-    
+
+    Spacer(modifier = Modifier.height(4.dp))
+
     Text(
-        text = "Secure Workspace",
-        style = MaterialTheme.typography.titleMedium,
+        text = "SECURE VAULT",
+        style = MaterialTheme.typography.labelSmall.copy(
+            fontFamily = FontFamily.Monospace,
+            letterSpacing = 4.sp
+        ),
         color = TextSecondary
     )
-    
+
     if (isPinConfigured) {
         Spacer(modifier = Modifier.height(8.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(VaultGreenSubtle.copy(alpha = 0.3f))
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Lock,
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = VaultGreen
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = "2-Factor Authentication",
-                style = MaterialTheme.typography.labelMedium,
-                color = VaultGreen
-            )
-        }
+        PixelBadge(text = "[ 2FA ACTIVE ]", color = NeonGreen)
     }
-    
-    Spacer(modifier = Modifier.height(48.dp))
-    
-    // Error message with animation
-    AnimatedVisibility(
-        visible = errorMessage != null,
-        enter = fadeIn() + slideInVertically(),
-        exit = fadeOut() + slideOutVertically()
-    ) {
+
+    Spacer(modifier = Modifier.height(40.dp))
+
+    // Error message
+    AnimatedVisibility(visible = errorMessage != null, enter = fadeIn(), exit = fadeOut()) {
         Text(
-            text = errorMessage ?: "",
-            style = MaterialTheme.typography.bodyMedium,
+            text = "> ${errorMessage ?: ""}",
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
             color = DestructiveRed,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 16.dp)
         )
     }
-    
-    // Biometric button with glow effect
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val buttonScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
-        label = "buttonScale"
-    )
-    
-    Button(
+
+    // Fingerprint button — pixel style wide button
+    PixelButton(
         onClick = onAuthenticate,
         enabled = !isAuthenticating && biometricAvailable,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .scale(buttonScale),
-        interactionSource = interactionSource,
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = VaultGreen,
-            disabledContainerColor = VaultGreen.copy(alpha = 0.3f)
-        )
+        modifier = Modifier.fillMaxWidth()
     ) {
         if (isAuthenticating) {
             CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(20.dp),
                 color = Color.Black,
                 strokeWidth = 2.dp
             )
+            Spacer(Modifier.width(10.dp))
+            Text("AUTHENTICATING...", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = Color.Black)
         } else {
             Icon(
                 imageVector = Icons.Default.Fingerprint,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(22.dp),
                 tint = Color.Black
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(Modifier.width(10.dp))
             Text(
-                text = if (isPinConfigured) "Step 1: Fingerprint" else "Unlock with Fingerprint",
-                color = Color.Black,
-                fontWeight = FontWeight.SemiBold
+                text = if (isPinConfigured) "[ SCAN FINGERPRINT ]" else "[ UNLOCK ]",
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
             )
         }
     }
-    
+
     if (!biometricAvailable) {
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "Biometric not available on this device",
-            style = MaterialTheme.typography.bodySmall,
-            color = DestructiveRed
-        )
+        Spacer(Modifier.height(10.dp))
+        PixelBadge(text = "BIOMETRIC UNAVAILABLE", color = DestructiveRed)
     }
-    
+
     if (failedAttempts > 0) {
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Failed attempts: $failedAttempts/5",
-            style = MaterialTheme.typography.bodySmall,
-            color = DestructiveRed
-        )
+        Spacer(Modifier.height(12.dp))
+        PixelBadge(text = "FAILED: $failedAttempts/5", color = WarningOrange)
     }
-    
-    Spacer(modifier = Modifier.height(48.dp))
-    
+
+    Spacer(modifier = Modifier.height(32.dp))
+
     // Security badge
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(DarkSurfaceVariant)
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .border(1.dp, PixelBorderNeonFaint, RoundedCornerShape(2.dp))
+            .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
-        Icon(
-            imageVector = Icons.Default.Lock,
-            contentDescription = null,
-            modifier = Modifier.size(14.dp),
-            tint = VaultGreen
-        )
-        Spacer(modifier = Modifier.width(8.dp))
+        Icon(Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(12.dp), tint = NeonGreen)
+        Spacer(Modifier.width(6.dp))
         Text(
-            text = "Hardware-backed encryption",
-            style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary
+            text = "AES-256 · HARDWARE BACKED",
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+            color = TextTertiary
         )
     }
 }
 
+// ────────────────────────────────────────────────
+// PIN ENTRY CONTENT
+// ────────────────────────────────────────────────
 @Composable
-private fun PinEntryContent(
+private fun PixelPinEntryContent(
     pinInput: String,
     errorMessage: String?,
     shakeOffset: Float,
@@ -408,91 +400,80 @@ private fun PinEntryContent(
     Icon(
         imageVector = Icons.Default.Pin,
         contentDescription = null,
-        modifier = Modifier.size(40.dp),
-        tint = VaultGreen
+        modifier = Modifier.size(36.dp),
+        tint = NeonGreen
     )
-    
-    Spacer(modifier = Modifier.height(16.dp))
-    
+
+    Spacer(Modifier.height(12.dp))
+
     Text(
-        text = "Enter PIN",
-        style = MaterialTheme.typography.titleLarge,
+        text = "ENTER PIN",
+        style = MaterialTheme.typography.titleMedium.copy(
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 4.sp
+        ),
         color = TextPrimary
     )
-    
+
     Text(
-        text = "Enter your 6-digit security PIN",
-        style = MaterialTheme.typography.bodyMedium,
+        text = "step 2 of 2",
+        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
         color = TextSecondary
     )
-    
-    Spacer(modifier = Modifier.height(32.dp))
-    
-    // PIN Dots with spring animation
+
+    Spacer(Modifier.height(28.dp))
+
+    // PIN Dots
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.graphicsLayer {
-            translationX = shakeOffset * 20f * kotlin.math.sin(shakeOffset * 10f * kotlin.math.PI.toFloat())
+            translationX = shakeOffset * 18f * kotlin.math.sin(shakeOffset * 10f * kotlin.math.PI.toFloat())
         }
     ) {
         repeat(6) { index ->
             val isFilled = index < pinInput.length
-            val dotScale by animateFloatAsState(
-                targetValue = if (isFilled) 1.2f else 1f,
-                animationSpec = spring(
-                    dampingRatio = 0.4f,
-                    stiffness = 400f
-                ),
-                label = "dotScale$index"
-            )
             val dotColor by animateColorAsState(
-                targetValue = if (isFilled) VaultGreen else DarkCard,
-                animationSpec = tween(200),
+                targetValue = if (isFilled) NeonGreen else DarkCard,
+                animationSpec = tween(150),
                 label = "dotColor$index"
             )
-            
+            val borderColor by animateColorAsState(
+                targetValue = if (isFilled) NeonGreen else PixelBorderBright,
+                animationSpec = tween(150),
+                label = "dotBorder$index"
+            )
+            // Square pixel dots
             Box(
                 modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .size(16.dp)
-                    .scale(dotScale)
-                    .clip(CircleShape)
+                    .padding(horizontal = 6.dp)
+                    .size(14.dp)
                     .background(dotColor)
-                    .then(
-                        if (!isFilled) Modifier.border(1.dp, GlassBorder, CircleShape)
-                        else Modifier
-                    )
+                    .border(1.dp, borderColor)
             )
         }
     }
-    
-    Spacer(modifier = Modifier.height(16.dp))
-    
-    // Error message
-    AnimatedVisibility(
-        visible = errorMessage != null,
-        enter = fadeIn() + slideInVertically(),
-        exit = fadeOut()
-    ) {
+
+    Spacer(Modifier.height(14.dp))
+
+    AnimatedVisibility(visible = errorMessage != null, enter = fadeIn(), exit = fadeOut()) {
         Text(
-            text = errorMessage ?: "",
-            style = MaterialTheme.typography.bodyMedium,
+            text = "> ${errorMessage ?: ""}",
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
             color = DestructiveRed,
             textAlign = TextAlign.Center
         )
     }
-    
-    Spacer(modifier = Modifier.height(32.dp))
-    
-    // Premium PIN Pad
-    PremiumPinPad(
-        onDigitClick = onDigitClick,
-        onDeleteClick = onDeleteClick
-    )
+
+    Spacer(Modifier.height(28.dp))
+
+    PixelPinPad(onDigitClick = onDigitClick, onDeleteClick = onDeleteClick)
 }
 
-// PIN pad layout - extracted outside composable to avoid reallocation
+// ────────────────────────────────────────────────
+// PIXEL PIN PAD
+// ────────────────────────────────────────────────
 private val PIN_PAD_ROWS = listOf(
     listOf("1", "2", "3"),
     listOf("4", "5", "6"),
@@ -501,49 +482,35 @@ private val PIN_PAD_ROWS = listOf(
 )
 
 @Composable
-private fun PremiumPinPad(
-    onDigitClick: (String) -> Unit,
-    onDeleteClick: () -> Unit
-) {
+private fun PixelPinPad(onDigitClick: (String) -> Unit, onDeleteClick: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        
         for (row in PIN_PAD_ROWS) {
             Row(
-                modifier = Modifier.padding(vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
+                modifier = Modifier.padding(vertical = 5.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 for (key in row) {
                     when {
-                        key.isEmpty() -> Spacer(modifier = Modifier.size(72.dp))
+                        key.isEmpty() -> Spacer(Modifier.size(68.dp))
                         key == "del" -> {
-                            PinPadButton(
-                                content = {
-                                    Icon(
-                                        imageVector = Icons.Default.Backspace,
-                                        contentDescription = "Delete",
-                                        tint = TextSecondary,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                },
-                                isTransparent = true,
-                                onClick = onDeleteClick
-                            )
+                            PixelKeyButton(isTransparent = false, onClick = onDeleteClick) {
+                                Icon(Icons.Default.Backspace, contentDescription = "Delete", tint = TextSecondary, modifier = Modifier.size(20.dp))
+                            }
                         }
                         else -> {
-                            PinPadButton(
-                                content = {
-                                    Text(
-                                        text = key,
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        fontWeight = FontWeight.Medium,
-                                        color = TextPrimary
-                                    )
-                                },
-                                onClick = { onDigitClick(key) }
-                            )
+                            PixelKeyButton(onClick = { onDigitClick(key) }) {
+                                Text(
+                                    text = key,
+                                    style = MaterialTheme.typography.headlineSmall.copy(
+                                        fontFamily = FontFamily.Monospace,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = TextPrimary
+                                )
+                            }
                         }
                     }
                 }
@@ -553,37 +520,40 @@ private fun PremiumPinPad(
 }
 
 @Composable
-private fun PinPadButton(
-    content: @Composable () -> Unit,
+private fun PixelKeyButton(
     isTransparent: Boolean = false,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    content: @Composable () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.9f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = 500f),
-        label = "pinButtonScale"
+
+    val bgColor by animateColorAsState(
+        targetValue = when {
+            isTransparent -> Color.Transparent
+            isPressed -> DarkCardHover
+            else -> DarkCard
+        },
+        animationSpec = tween(80),
+        label = "keyBg"
     )
-    
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isPressed && !isTransparent) DarkCardHover else if (isTransparent) Color.Transparent else DarkCard,
-        animationSpec = tween(100),
-        label = "pinButtonBg"
-    )
-    
+
     Box(
         modifier = Modifier
-            .size(72.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
+            .size(68.dp)
+            // Pixel shadow effect: offset box beneath
+            .drawBehind {
+                if (!isTransparent && !isPressed) {
+                    drawRect(
+                        color = Color.Black,
+                        topLeft = Offset(3f, 3f),
+                        size = size
+                    )
+                }
             }
-            .clip(CircleShape)
-            .background(backgroundColor)
+            .background(bgColor)
             .then(
-                if (!isTransparent) Modifier.border(1.dp, GlassBorder.copy(alpha = 0.1f), CircleShape)
+                if (!isTransparent) Modifier.border(1.dp, PixelBorderBright)
                 else Modifier
             )
             .clickable(
@@ -594,5 +564,68 @@ private fun PinPadButton(
         contentAlignment = Alignment.Center
     ) {
         content()
+    }
+}
+
+// ────────────────────────────────────────────────
+// SHARED PIXEL COMPONENTS
+// ────────────────────────────────────────────────
+
+@Composable
+fun PixelButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    Box(
+        modifier = modifier
+            .height(52.dp)
+            .drawBehind {
+                if (!isPressed && enabled) {
+                    drawRect(
+                        color = NeonGreenDark,
+                        topLeft = Offset(3f, 3f),
+                        size = size
+                    )
+                }
+            }
+            .background(if (enabled) NeonGreen else NeonGreen.copy(alpha = 0.3f))
+            .border(1.dp, if (enabled) Color.Black.copy(alpha = 0.3f) else Color.Transparent)
+            .then(
+                if (enabled) {
+                    Modifier.clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = onClick
+                    )
+                } else Modifier
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            content = content
+        )
+    }
+}
+
+@Composable
+fun PixelBadge(text: String, color: Color) {
+    Box(
+        modifier = Modifier
+            .border(1.dp, color.copy(alpha = 0.4f))
+            .background(color.copy(alpha = 0.08f))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+            color = color
+        )
     }
 }

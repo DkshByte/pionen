@@ -31,7 +31,12 @@ class VaultViewModel @Inject constructor(
     
     fun loadStats() {
         viewModelScope.launch {
-            _vaultStats.value = vaultEngine.getVaultStats()
+            try {
+                _vaultStats.value = vaultEngine.getVaultStats()
+            } catch (e: Exception) {
+                // Database may not be ready yet — tolerate gracefully
+                _vaultStats.value = VaultStats(0, 0L, 0L)
+            }
         }
     }
     

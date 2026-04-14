@@ -26,10 +26,10 @@ class ShakeDetector @Inject constructor(
 ) : SensorEventListener {
     
     companion object {
-        // Shake detection thresholds
-        private const val SHAKE_THRESHOLD_GRAVITY = 2.7f  // m/s^2 above gravity
-        private const val SHAKE_COUNT_RESET_TIME_MS = 3000L  // Reset after 3 seconds
-        private const val MIN_SHAKES_TO_TRIGGER = 4  // Need 4 shakes in 3 seconds
+        // Shake detection thresholds — raised to avoid false positives during normal handling
+        private const val SHAKE_THRESHOLD_GRAVITY = 3.2f  // Requires vigorous shake
+        private const val SHAKE_COUNT_RESET_TIME_MS = 2000L  // Reset after 2 seconds
+        private const val MIN_SHAKES_TO_TRIGGER = 8  // Requires 8 rapid shakes in 2 seconds
     }
     
     private val sensorManager: SensorManager? = 
@@ -40,7 +40,10 @@ class ShakeDetector @Inject constructor(
     private var shakeTimestamp: Long = 0
     private var shakeCount: Int = 0
     private var isEnabled: Boolean = false
-    
+
+    // Injected so the shake detector can refuse to fire while vault is locked
+    var lockManager: LockManager? = null
+
     private val _shakeTriggered = MutableStateFlow(false)
     val shakeTriggered: StateFlow<Boolean> = _shakeTriggered
     
@@ -99,11 +102,16 @@ class ShakeDetector @Inject constructor(
             
             shakeTimestamp = now
             shakeCount++
-            
+
             // Check if we've reached the threshold
             if (shakeCount >= MIN_SHAKES_TO_TRIGGER) {
                 shakeCount = 0
-                _shakeTriggered.value = true
+                // SAFETY: Never trigger panic while vault is locked (user could be
+                // entering their password, or the phone is just in a pocket).
+                val isVaultLocked = lockManager?.lockState?.value is LockState.Locked
+                if (!isVaultLocked) {
+                    _shakeTriggered.value = true
+                }
             }
         }
     }
