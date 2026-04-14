@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Calculator icon for stealth mode -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Background circle -->
+    <path
+        android:fillColor="#4A90D9"
+        android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0"/>
+    
+    <!-- Calculator body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M32,28h44c2.2,0 4,1.8 4,4v44c0,2.2 -1.8,4 -4,4h-44c-2.2,0 -4,-1.8 -4,-4v-44c0,-2.2 1.8,-4 4,-4z"/>
+    
+    <!-- Display -->
+    <path
+        android:fillColor="#1A1A2E"
+        android:pathData="M34,32h40v14h-40z"/>
+    
+    <!-- Button row 1 -->
+    <path android:fillColor="#E0E0E0" android:pathData="M34,50h8v8h-8z"/>
+    <path android:fillColor="#E0E0E0" android:pathData="M46,50h8v8h-8z"/>
+    <path android:fillColor="#E0E0E0" android:pathData="M58,50h8v8h-8z"/>
+    <path android:fillColor="#FFB74D" android:pathData="M70,50h4v8h-4z"/>
+    
+    <!-- Button row 2 -->
+    <path android:fillColor="#E0E0E0" android:pathData="M34,62h8v8h-8z"/>
+    <path android:fillColor="#E0E0E0" android:pathData="M46,62h8v8h-8z"/>
+    <path android:fillColor="#E0E0E0" android:pathData="M58,62h8v8h-8z"/>
+    <path android:fillColor="#FFB74D" android:pathData="M70,62h4v8h-4z"/>
+</vector>

@@ -1,0 +1,72 @@
+# ============================================================
+# Pionen - Android .gitignore
+# ============================================================
+
+# ----- Secrets & Local Configuration -----
+local.properties
+*.keystore
+*.jks
+keystore.properties
+signing.properties
+secrets.properties
+
+# ----- Build Outputs -----
+build/
+.gradle/
+app/build/
+
+# ----- Android Studio IDE -----
+*.iml
+.idea/
+.idea/caches/
+.idea/libraries/
+.idea/workspace.xml
+.idea/modules.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/gradle.xml
+*.orig
+.DS_Store
+
+# ----- JVM Crash Logs (never commit these) -----
+hs_err_pid*.log
+replay_pid*.log
+java_pid*.hprof
+
+# ----- Dev Artifacts -----
+*.resolved
+ui_blueprint.md.resolved
+
+# ----- Kotlin / Kapt -----
+**/.kotlin/
+**/generated/
+**/kapt/
+
+# ----- Gradle Wrapper (keep gradlew, gradlew.bat, wrapper jar & props) -----
+# Do NOT ignore gradlew or gradle-wrapper files (they're needed for CI)
+
+# ----- OS Files -----
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.Spotlight-V100
+.Trashes
+.fseventsd
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ----- Logs -----
+*.log
+
+# ----- APK / AAB Output -----
+*.apk
+*.aab
+*.ap_
+
+# ----- Profiling -----
+*.hprof
+
+# ----- Test Results -----
+test-results/

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Notes icon for stealth mode -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Background circle -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0"/>
+    
+    <!-- Note paper -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,24h42l10,10v50c0,2.2 -1.8,4 -4,4h-48c-2.2,0 -4,-1.8 -4,-4v-56c0,-2.2 1.8,-4 4,-4z"/>
+    
+    <!-- Folded corner -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M72,24v10h10z"/>
+    
+    <!-- Lines -->
+    <path android:fillColor="#BDBDBD" android:pathData="M34,42h40v2h-40z"/>
+    <path android:fillColor="#BDBDBD" android:pathData="M34,52h40v2h-40z"/>
+    <path android:fillColor="#BDBDBD" android:pathData="M34,62h30v2h-30z"/>
+    <path android:fillColor="#BDBDBD" android:pathData="M34,72h35v2h-35z"/>
+</vector>

@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Pionen</string>
+    <string name="vault_locked">Vault Locked</string>
+    <string name="unlock_with_biometric">Unlock with fingerprint</string>
+    <string name="unlock_with_pin">Unlock with PIN</string>
+    <string name="import_warning_title">Security Warning</string>
+    <string name="import_warning_message">This file existed unencrypted on your device. While it will be encrypted in Pionen\'s vault, the original plaintext may still be recoverable from your device\'s storage due to flash wear-leveling.\n\nFor maximum security, only create files directly within Pionen.</string>
+    <string name="import_anyway">I Understand, Import</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_confirm_title">Crypto-Shred File?</string>
+    <string name="delete_confirm_message">The encryption key will be destroyed. This action is IRREVERSIBLE. The file cannot be recovered.</string>
+    <string name="delete_permanently">Destroy Permanently</string>
+    <string name="panic_wipe_title">Emergency Wipe</string>
+    <string name="panic_wipe_message">All encryption keys will be destroyed. All files will become irrecoverable. This action CANNOT be undone.</string>
+    <string name="panic_wipe_confirm">Wipe Everything</string>
+    <string name="hardware_protection_active">Hardware Protection Active</string>
+    <string name="keys_stored_in_hardware">Keys stored in secure hardware</string>
+    <string name="strongbox_available">StrongBox: Available</string>
+    <string name="strongbox_unavailable">StrongBox: Not Available (TEE used)</string>
+</resources>
