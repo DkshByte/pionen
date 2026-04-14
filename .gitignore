@@ -36,6 +36,7 @@ java_pid*.hprof
 # ----- Dev Artifacts -----
 *.resolved
 ui_blueprint.md.resolved
+setup.ps1
 
 # ----- Kotlin / Kapt -----
 **/.kotlin/

@@ -63,7 +63,7 @@ User Authentication (Biometric + PIN)
 
 ### Clone
 ```bash
-git clone https://github.com/YOUR_USERNAME/pionen.git
+git clone https://github.com/DkshByte/pionen.git
 cd pionen
 ```
 
@@ -103,7 +103,7 @@ Before building a release APK you **must** configure signing. See [Signing Setup
    keyPassword=YOUR_KEY_PASSWORD
    ```
 
-3. Uncomment the `signingConfigs` block in `app/build.gradle.kts` and wire it to the release build type.
+3. The `signingConfigs` block in `app/build.gradle.kts` reads from `keystore.properties` automatically — no extra changes needed.
 
 For CI/CD, use GitHub Actions secrets instead of a local file. See `.github/workflows/ci.yml`.
 
@@ -190,6 +190,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Security
 
 To report a vulnerability, see [SECURITY.md](SECURITY.md).
+
+## Export Control
+
+This software includes cryptographic functionality (AES-256-GCM). By downloading or using this software, you agree to comply with all applicable export control laws and regulations in your jurisdiction. The authors make no representations regarding the legality of this software in any particular country.
 
 ## License
 
