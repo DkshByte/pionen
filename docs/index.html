@@ -1596,50 +1596,19 @@
     // PARALLAX + MAIN PAGE LOGIC
     // ═══════════════════════════════════════════════════════
     // ── Elements ─────────────────────────────────────────────
-    const nav        = document.getElementById('nav');
-    const blobLayer  = document.getElementById('blob-layer');
-    const midLayer   = document.getElementById('mid-layer');
-    const heroBack   = document.getElementById('hero-back');
-    const heroContent= document.getElementById('hero-content');
+    const nav       = document.getElementById('nav');
+    const blobLayer = document.getElementById('blob-layer');
+    const midLayer  = document.getElementById('mid-layer');
 
-    // ── Lerp smoothing state ─────────────────────────────────
-    // Current interpolated values
-    let cur = { blob: 0, mid: 0, back: 0, content: 0 };
-    // Target values (set from scroll)
-    let tgt = { blob: 0, mid: 0, back: 0, content: 0 };
-    const LERP = 0.10; // 0–1, lower = smoother/slower catch-up
-
-    function lerp(a, b, t) { return a + (b - a) * t; }
-
-    // ── Scroll handler — only updates targets ────────────────
-    let scrollY = 0;
+    // ── Scroll: nav glass + subtle background depth ───────────
     window.addEventListener('scroll', () => {
-      scrollY = window.scrollY;
-      nav.classList.toggle('s', scrollY > 50);
-
-      // Speed multipliers — keep them gentle so phone stays visible
-      tgt.blob    = scrollY * 0.08;   // Far background blobs
-      tgt.mid     = scrollY * 0.14;   // Grid lines
-      tgt.back    = scrollY * 0.22;   // Hero rings
-      tgt.content = scrollY * 0.28;   // Hero text + phone
+      const sy = window.scrollY;
+      nav.classList.toggle('s', sy > 50);
+      blobLayer.style.transform = `translate3d(0,${sy * 0.06}px,0)`;
+      midLayer.style.transform  = `translate3d(0,${sy * 0.10}px,0)`;
     }, { passive: true });
 
-    // ── RAF loop — smooth lerp every frame ───────────────────
-    function animate() {
-      cur.blob    = lerp(cur.blob,    tgt.blob,    LERP);
-      cur.mid     = lerp(cur.mid,     tgt.mid,     LERP);
-      cur.back    = lerp(cur.back,    tgt.back,    LERP);
-      cur.content = lerp(cur.content, tgt.content, LERP);
 
-      // Only apply if diff is noticeable (skip micro updates)
-      blobLayer.style.transform  = `translate3d(0,${cur.blob.toFixed(2)}px,0)`;
-      midLayer.style.transform   = `translate3d(0,${cur.mid.toFixed(2)}px,0)`;
-      if (heroBack)    heroBack.style.transform    = `translate3d(0,${cur.back.toFixed(2)}px,0)`;
-      if (heroContent) heroContent.style.transform = `translate3d(0,${cur.content.toFixed(2)}px,0)`;
-
-      requestAnimationFrame(animate);
-    }
-    requestAnimationFrame(animate);
 
     // ── Scroll reveal ────────────────────────────────────────
     const io = new IntersectionObserver((entries) => {
