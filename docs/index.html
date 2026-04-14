@@ -1297,7 +1297,7 @@
         </div>
 
         <!-- RIGHT: large floating phone -->
-        <div class="hero-phone-col reveal" style="transition-delay:.3s">
+        <div class="hero-phone-col" style="animation: iUp 0.7s ease 0.4s both;">
           <div class="hero-phone-aura"></div>
           <div class="hero-big-phone">
             <div class="hbp-notch"></div>
@@ -1550,6 +1550,15 @@
         setTimeout(() => {
           introEl.style.display = 'none';
           document.body.classList.remove('intro-active');
+          // Force-reveal everything currently in viewport
+          // (IntersectionObserver won't re-fire for elements already observed)
+          setTimeout(() => {
+            document.querySelectorAll('.reveal:not(.in)').forEach(el => {
+              if (el.getBoundingClientRect().top < window.innerHeight * 1.05) {
+                el.classList.add('in');
+              }
+            });
+          }, 120);
         }, 860);
       }, 500);
     }
