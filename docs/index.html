@@ -1652,6 +1652,186 @@
         transform: none;
       }
     }
+
+
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* LIVE TERMINAL                                           */
+    /* ═══════════════════════════════════════════════════════ */
+    .terminal-section {
+      margin-top: 72px;
+    }
+
+    .terminal {
+      background: #000;
+      border: 1px solid rgba(0, 255, 136, 0.12);
+      border-radius: 14px;
+      overflow: hidden;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.85;
+    }
+
+    .terminal-bar {
+      background: rgba(0, 255, 136, 0.035);
+      border-bottom: 1px solid rgba(0, 255, 136, 0.08);
+      padding: 11px 18px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .t-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .t-dot-r { background: rgba(255, 95, 87, 0.45); }
+    .t-dot-y { background: rgba(255, 189, 46, 0.45); }
+    .t-dot-g { background: rgba(40, 210, 130, 0.45); }
+
+    .terminal-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: rgba(0, 255, 136, 0.28);
+      letter-spacing: 0.08em;
+      margin-left: 10px;
+    }
+
+    .terminal-body {
+      padding: 24px 28px;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      overflow-y: auto;
+    }
+
+    .t-line {
+      display: block;
+      white-space: pre-wrap;
+    }
+
+    .t-green  { color: #00ff88; }
+    .t-gray   { color: #71717a; }
+    .t-blue   { color: #7dd3fc; }
+    .t-yellow { color: #fbbf24; }
+    .t-red    { color: #f87171; }
+    .t-dim    { color: rgba(0, 255, 136, 0.22); }
+    .t-white  { color: #f0fff8; }
+
+    .t-cursor {
+      display: inline-block;
+      width: 7px;
+      height: 13px;
+      background: #00ff88;
+      animation: tBlink 1s step-end infinite;
+      vertical-align: text-bottom;
+      margin-left: 1px;
+    }
+
+    @keyframes tBlink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* DISCLAIMER                                              */
+    /* ═══════════════════════════════════════════════════════ */
+    #disclaimer {
+      padding: 50px 0 70px;
+    }
+
+    .disclaimer-box {
+      background: rgba(255, 189, 46, 0.015);
+      border: 1px solid rgba(255, 189, 46, 0.1);
+      border-radius: 18px;
+      padding: 42px 52px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .disclaimer-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg,
+          transparent 0%,
+          rgba(255, 189, 46, 0.18) 50%,
+          transparent 100%);
+    }
+
+    .disclaimer-header {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      margin-bottom: 28px;
+    }
+
+    .disclaimer-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(255, 189, 46, 0.07);
+      border: 1px solid rgba(255, 189, 46, 0.18);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .disclaimer-title {
+      font-family: var(--head);
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255, 189, 46, 0.8);
+      letter-spacing: -0.01em;
+    }
+
+    .disclaimer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+
+    @media (max-width: 860px) {
+      .disclaimer-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .disclaimer-box {
+        padding: 30px 24px;
+      }
+    }
+
+    .disclaimer-item h4 {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255, 189, 46, 0.55);
+      margin-bottom: 10px;
+    }
+
+    .disclaimer-item p {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: #71717a;
+      line-height: 1.9;
+    }
+
+    .disclaimer-item p a {
+      color: rgba(0, 255, 136, 0.5);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .disclaimer-item p a:hover {
+      color: var(--green);
+    }
   </style>
 </head>
 
@@ -1919,7 +2099,7 @@
           <div class="stat-l">Encryption</div>
         </div>
         <div class="stat">
-          <div class="stat-n">100k</div>
+          <div class="stat-n" data-count="100" data-suffix="k">100k</div>
           <div class="stat-l">PBKDF2 Rounds</div>
         </div>
         <div class="stat">
@@ -1927,18 +2107,18 @@
           <div class="stat-l">Bio + PIN</div>
         </div>
         <div class="stat">
-          <div class="stat-n">~200ms</div>
+          <div class="stat-n" data-count="200" data-prefix="~" data-suffix="ms">~200ms</div>
           <div class="stat-l">Panic Wipe</div>
         </div>
         <div class="stat">
-          <div class="stat-n">0</div>
+          <div class="stat-n" data-count="0">0</div>
           <div class="stat-l">Cloud Backup</div>
         </div>
       </div>
     </div>
   </section>
 
-  <div class="divider reveal"></div>
+
 
   <!-- ── FEATURES ──────────────────────────────────────────── -->
   <section id="features">
@@ -2100,6 +2280,29 @@
           </div>
         </div>
       </div>
+
+      <!-- LIVE TERMINAL -->
+      <div class="terminal-section reveal" style="transition-delay:.2s">
+        <div class="sec-hd" style="margin-bottom:32px;margin-top:80px">
+          <span class="tag">Live Trace</span>
+          <h2 style="font-size:clamp(28px,4vw,48px)">Encryption, <span class="g">in action.</span></h2>
+          <p class="sec-sub">Watch a file move through the full encryption stack — from key request to vault write.</p>
+        </div>
+        <div id="live-terminal">
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="t-dot t-dot-r"></div>
+              <div class="t-dot t-dot-y"></div>
+              <div class="t-dot t-dot-g"></div>
+              <span class="terminal-title">pionen-vault · encrypt · live trace</span>
+            </div>
+            <div class="terminal-body" id="terminal-body">
+              <span class="t-line t-gray">Initialising vault engine...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -2137,6 +2340,37 @@
           </a>
         </div>
         <div class="dl-note">Requires Android 8.0 (API 26) or higher · v1.0.0 · MIT License</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DISCLAIMER ──────────────────────────────────────────── -->
+  <section id="disclaimer">
+    <div class="wrap">
+      <div class="disclaimer-box reveal">
+        <div class="disclaimer-header">
+          <div class="disclaimer-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,189,46,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <div class="disclaimer-title">Legal Notice &amp; Disclaimers</div>
+        </div>
+        <div class="disclaimer-grid">
+          <div class="disclaimer-item">
+            <h4>Export Control</h4>
+            <p>This software includes cryptographic functionality (AES-256-GCM). By downloading or using Pionen, you agree to comply with all applicable export control laws in your jurisdiction. The authors make no representations regarding the legality of this software in any particular country.</p>
+          </div>
+          <div class="disclaimer-item">
+            <h4>No Warranty</h4>
+            <p>Pionen is provided "as is" under the <a href="https://github.com/DkshByte/pionen/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>, without warranty of any kind. The authors are not liable for any damages — including data loss or security incidents — arising from use or inability to use this software.</p>
+          </div>
+          <div class="disclaimer-item">
+            <h4>Security Disclosure</h4>
+            <p>To report a vulnerability, follow the responsible disclosure process in <a href="https://github.com/DkshByte/pionen/blob/main/SECURITY.md" target="_blank" rel="noopener">SECURITY.md</a>. Do not publicly disclose issues before they are addressed. We aim to respond within 48 hours of a valid report.</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -2287,6 +2521,93 @@
         card.style.transition = 'transform 0.4s cubic-bezier(.22,1,.36,1), border-color 0.35s, box-shadow 0.35s';
       });
     });
+
+    // ═══════════════════════════════════════════════════════
+    // ANIMATED STAT COUNTERS
+    // ═══════════════════════════════════════════════════════
+    function animateCount(el, target, prefix, suffix, duration) {
+      const start = performance.now();
+      (function tick(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+        el.textContent = (prefix || '') + Math.floor(eased * target) + (suffix || '');
+        if (p < 1) requestAnimationFrame(tick);
+        else el.textContent = (prefix || '') + target + (suffix || '');
+      })(start);
+    }
+
+    const counterIO = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        const target = parseInt(el.dataset.count, 10);
+        if (!isNaN(target)) {
+          animateCount(el, target, el.dataset.prefix || '', el.dataset.suffix || '', 1600);
+        }
+        counterIO.unobserve(el);
+      });
+    }, { threshold: 0.6 });
+
+    document.querySelectorAll('.stat-n[data-count]').forEach(el => counterIO.observe(el));
+
+    // ═══════════════════════════════════════════════════════
+    // LIVE TYPING TERMINAL
+    // ═══════════════════════════════════════════════════════
+    const termLines = [
+      { t: '$ pionen-vault encrypt --file="photo_2026.jpg"', cls: 't-green',  d: 0    },
+      { t: '',                                                cls: '',         d: 180  },
+      { t: '  [KeyManager]   requesting key from Keystore...', cls: 't-gray',  d: 280  },
+      { t: '  [KeyManager] ✓ alias : PIONEN_FILE_KEY_7f3a9c2b', cls: 't-blue',  d: 620  },
+      { t: '  [KeyManager] ✓ backend: StrongBox TEE',          cls: 't-blue',  d: 900  },
+      { t: '  [KeyManager] ✓ key extractable: false',          cls: 't-blue',  d: 1100 },
+      { t: '',                                                cls: '',         d: 1200 },
+      { t: '  [FileEncryptor] generating IV (12 bytes, random)...', cls: 't-gray',  d: 1350 },
+      { t: '  [FileEncryptor] iv: 3f a8 9c 11 7e 40 b2 c6 8d 21 fa 09', cls: 't-dim',   d: 1650 },
+      { t: '  [FileEncryptor] cipher: AES/GCM/NoPadding',     cls: 't-gray',  d: 1900 },
+      { t: '  [FileEncryptor] streaming...  ████████████████ 100%', cls: 't-yellow', d: 2250 },
+      { t: '',                                                cls: '',         d: 2500 },
+      { t: '  [VaultEngine]   writing → .vault/8b2f1a7c.enc', cls: 't-gray',  d: 2650 },
+      { t: '  [VaultEngine] ✓ auth tag (128-bit): verified',  cls: 't-blue',  d: 2900 },
+      { t: '  [VaultEngine] ✓ metadata encrypted in SQLCipher',cls: 't-blue',  d: 3100 },
+      { t: '',                                                cls: '',         d: 3300 },
+      { t: '  ✓ plaintext never touched disk.',               cls: 't-green',  d: 3500 },
+      { t: '  ✓ key: non-extractable, hardware-bound.',       cls: 't-green',  d: 3700 },
+      { t: '  ✓ encrypted in 47ms.',                         cls: 't-green',  d: 3900 },
+    ];
+
+    let termStarted = false;
+
+    function runTerminal() {
+      if (termStarted) return;
+      termStarted = true;
+      const body = document.getElementById('terminal-body');
+      if (!body) return;
+      body.innerHTML = '';
+      termLines.forEach(({ t, cls, d }) => {
+        setTimeout(() => {
+          const span = document.createElement('span');
+          span.className = 't-line ' + (cls || '');
+          span.textContent = t;
+          body.appendChild(span);
+          body.scrollTop = body.scrollHeight;
+        }, d);
+      });
+      const lastDelay = termLines[termLines.length - 1].d;
+      setTimeout(() => {
+        const prompt = document.createElement('span');
+        prompt.className = 't-line t-green';
+        prompt.innerHTML = '$ <span class="t-cursor"></span>';
+        body.appendChild(prompt);
+        body.scrollTop = body.scrollHeight;
+      }, lastDelay + 500);
+    }
+
+    const termIO = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) runTerminal(); });
+    }, { threshold: 0.25 });
+
+    const termEl = document.getElementById('live-terminal');
+    if (termEl) termIO.observe(termEl);
   </script>
 </body>
 
