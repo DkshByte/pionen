@@ -1656,6 +1656,120 @@
 
 
     /* ═══════════════════════════════════════════════════════ */
+    /* STRONGBOX COMPARISON TABLE                               */
+    /* ═══════════════════════════════════════════════════════ */
+    .sb-compare {
+      margin-top: 80px;
+    }
+
+    .sb-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .sb-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .sb-table th,
+    .sb-table td {
+      padding: 14px 20px;
+      text-align: left;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.08);
+    }
+
+    .sb-table thead th {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      background: rgba(0, 255, 136, 0.03);
+      border-bottom: 1px solid rgba(0, 255, 136, 0.15);
+      font-weight: 500;
+    }
+
+    .sb-table tbody td {
+      color: var(--gray-lt);
+    }
+
+    .sb-table tbody tr {
+      transition: background 0.2s;
+    }
+
+    .sb-table tbody tr:hover {
+      background: rgba(0, 255, 136, 0.03);
+    }
+
+    .sb-table .sb-label {
+      color: var(--white);
+      font-weight: 500;
+    }
+
+    .sb-table .sb-highlight {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .sb-table .sb-warn {
+      color: #fbbf24;
+    }
+
+    .sb-table .sb-dim {
+      color: var(--gray);
+    }
+
+    .sb-tag {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border: 1px solid;
+      text-transform: uppercase;
+    }
+
+    .sb-tag-green {
+      color: var(--green);
+      border-color: rgba(0, 255, 136, 0.3);
+      background: rgba(0, 255, 136, 0.06);
+    }
+
+    .sb-tag-yellow {
+      color: #fbbf24;
+      border-color: rgba(251, 191, 36, 0.3);
+      background: rgba(251, 191, 36, 0.06);
+    }
+
+    .sb-tag-red {
+      color: #f87171;
+      border-color: rgba(248, 113, 113, 0.3);
+      background: rgba(248, 113, 113, 0.06);
+    }
+
+    .sb-note {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray);
+      margin-top: 16px;
+      line-height: 1.7;
+    }
+
+    .sb-note span {
+      color: var(--green);
+    }
+
+    @media (max-width: 640px) {
+      .sb-table th,
+      .sb-table td {
+        padding: 10px 12px;
+        font-size: 11px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
     /* LIVE TERMINAL                                           */
     /* ═══════════════════════════════════════════════════════ */
     .terminal-section {
@@ -2314,6 +2428,70 @@
         <span class="ad">Files: irrecoverable</span>
         <span class="ad">Time: ~200ms</span>
 </pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- STRONGBOX COMPARISON -->
+      <div class="sb-compare reveal" style="transition-delay:.1s">
+        <div class="sec-hd" style="margin-bottom:32px;margin-top:80px">
+          <span class="tag">Hardware Security</span>
+          <h2 style="font-size:clamp(28px,4vw,48px)">Why <span class="g">StrongBox?</span></h2>
+          <p class="sec-sub">Your encryption key never leaves the dedicated security chip — even if the OS is compromised.</p>
+        </div>
+        <div class="glass" style="padding:0;overflow:hidden">
+          <div class="sb-table-wrap">
+            <table class="sb-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Software Keystore</th>
+                  <th>TEE (TrustZone)</th>
+                  <th>StrongBox</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="sb-label">Where</td>
+                  <td class="sb-dim">Main CPU, normal OS</td>
+                  <td>Main CPU, isolated secure world</td>
+                  <td class="sb-highlight">Separate physical chip</td>
+                </tr>
+                <tr>
+                  <td class="sb-label">Speed</td>
+                  <td>~1 ms <span class="sb-tag sb-tag-green">fastest</span></td>
+                  <td>~5–15 ms</td>
+                  <td class="sb-warn">~50–200 ms <span class="sb-tag sb-tag-yellow">slowest</span></td>
+                </tr>
+                <tr>
+                  <td class="sb-label">Security</td>
+                  <td class="sb-dim">Lowest <span class="sb-tag sb-tag-red">weak</span></td>
+                  <td>High</td>
+                  <td class="sb-highlight">Highest <span class="sb-tag sb-tag-green">tamper-proof</span></td>
+                </tr>
+                <tr>
+                  <td class="sb-label">Key extractable?</td>
+                  <td class="sb-dim">Via root</td>
+                  <td>No (software boundary)</td>
+                  <td class="sb-highlight">No (physical boundary)</td>
+                </tr>
+                <tr>
+                  <td class="sb-label">Survives OS compromise?</td>
+                  <td class="sb-dim">No</td>
+                  <td>Partially</td>
+                  <td class="sb-highlight">Yes</td>
+                </tr>
+                <tr>
+                  <td class="sb-label">Tamper detection</td>
+                  <td class="sb-dim">None</td>
+                  <td class="sb-dim">None</td>
+                  <td class="sb-highlight">Voltage, clock, glitch sensors</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="sb-note" style="padding: 16px 20px; border-top: 1px solid rgba(0,255,136,0.08)">
+            <span>Pionen</span> automatically uses StrongBox when available (Pixel 3+, Samsung S10+). Falls back to TEE on older devices. The bulk AES-GCM file encryption still runs on the main CPU — only the <span>key unwrap</span> step touches StrongBox, so real-world file throughput is unaffected.
           </div>
         </div>
       </div>
