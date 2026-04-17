@@ -1688,9 +1688,17 @@
       flex-shrink: 0;
     }
 
-    .t-dot-r { background: rgba(255, 95, 87, 0.45); }
-    .t-dot-y { background: rgba(255, 189, 46, 0.45); }
-    .t-dot-g { background: rgba(40, 210, 130, 0.45); }
+    .t-dot-r {
+      background: rgba(255, 95, 87, 0.45);
+    }
+
+    .t-dot-y {
+      background: rgba(255, 189, 46, 0.45);
+    }
+
+    .t-dot-g {
+      background: rgba(40, 210, 130, 0.45);
+    }
 
     .terminal-title {
       font-family: var(--mono);
@@ -1714,13 +1722,33 @@
       white-space: pre-wrap;
     }
 
-    .t-green  { color: #00ff88; }
-    .t-gray   { color: #71717a; }
-    .t-blue   { color: #7dd3fc; }
-    .t-yellow { color: #fbbf24; }
-    .t-red    { color: #f87171; }
-    .t-dim    { color: rgba(0, 255, 136, 0.22); }
-    .t-white  { color: #f0fff8; }
+    .t-green {
+      color: #00ff88;
+    }
+
+    .t-gray {
+      color: #71717a;
+    }
+
+    .t-blue {
+      color: #7dd3fc;
+    }
+
+    .t-yellow {
+      color: #fbbf24;
+    }
+
+    .t-red {
+      color: #f87171;
+    }
+
+    .t-dim {
+      color: rgba(0, 255, 136, 0.22);
+    }
+
+    .t-white {
+      color: #f0fff8;
+    }
 
     .t-cursor {
       display: inline-block;
@@ -1733,8 +1761,15 @@
     }
 
     @keyframes tBlink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
     }
 
     /* ═══════════════════════════════════════════════════════ */
@@ -1756,7 +1791,9 @@
     .disclaimer-box::before {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0;
+      top: 0;
+      left: 0;
+      right: 0;
       height: 1px;
       background: linear-gradient(90deg,
           transparent 0%,
@@ -2350,9 +2387,11 @@
       <div class="disclaimer-box reveal">
         <div class="disclaimer-header">
           <div class="disclaimer-icon">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,189,46,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,189,46,0.8)" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
           </div>
           <div class="disclaimer-title">Legal Notice &amp; Disclaimers</div>
@@ -2360,15 +2399,23 @@
         <div class="disclaimer-grid">
           <div class="disclaimer-item">
             <h4>Export Control</h4>
-            <p>This software includes cryptographic functionality (AES-256-GCM). By downloading or using Pionen, you agree to comply with all applicable export control laws in your jurisdiction. The authors make no representations regarding the legality of this software in any particular country.</p>
+            <p>This software includes cryptographic functionality (AES-256-GCM). By downloading or using Pionen, you
+              agree to comply with all applicable export control laws in your jurisdiction. The authors make no
+              representations regarding the legality of this software in any particular country.</p>
           </div>
           <div class="disclaimer-item">
             <h4>No Warranty</h4>
-            <p>Pionen is provided "as is" under the <a href="https://github.com/DkshByte/pionen/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>, without warranty of any kind. The authors are not liable for any damages — including data loss or security incidents — arising from use or inability to use this software.</p>
+            <p>Pionen is provided "as is" under the <a href="https://github.com/DkshByte/pionen/blob/main/LICENSE"
+                target="_blank" rel="noopener">MIT License</a>, without warranty of any kind. The authors are not liable
+              for any damages — including data loss or security incidents — arising from use or inability to use this
+              software.</p>
           </div>
           <div class="disclaimer-item">
             <h4>Security Disclosure</h4>
-            <p>To report a vulnerability, follow the responsible disclosure process in <a href="https://github.com/DkshByte/pionen/blob/main/SECURITY.md" target="_blank" rel="noopener">SECURITY.md</a>. Do not publicly disclose issues before they are addressed. We aim to respond within 48 hours of a valid report.</p>
+            <p>To report a vulnerability, follow the responsible disclosure process in <a
+                href="https://github.com/DkshByte/pionen/blob/main/SECURITY.md" target="_blank"
+                rel="noopener">SECURITY.md</a>. Do not publicly disclose issues before they are addressed. We aim to
+              respond within 48 hours of a valid report.</p>
           </div>
         </div>
       </div>
@@ -2401,7 +2448,7 @@
           <span class="foot-copy">MIT · built with paranoia</span><br>
           <span class="foot-copy" style="margin-top:4px;display:inline-block">
             Made by <span style="color:var(--green)">Daksh Sharma</span> ·
-            <span style="color:rgba(0,255,136,0.5)">Completely built with AI</span>
+            <span style="color:rgba(0,255,136,0.5)">Built with AI</span>
           </span><br>
           <a href="mailto:support@pionen.in" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;
                     color:rgba(0,255,136,0.55);text-decoration:none;
@@ -2554,25 +2601,25 @@
     // LIVE TYPING TERMINAL
     // ═══════════════════════════════════════════════════════
     const termLines = [
-      { t: '$ pionen-vault encrypt --file="photo_2026.jpg"', cls: 't-green',  d: 0    },
-      { t: '',                                                cls: '',         d: 180  },
-      { t: '  [KeyManager]   requesting key from Keystore...', cls: 't-gray',  d: 280  },
-      { t: '  [KeyManager] ✓ alias : PIONEN_FILE_KEY_7f3a9c2b', cls: 't-blue',  d: 620  },
-      { t: '  [KeyManager] ✓ backend: StrongBox TEE',          cls: 't-blue',  d: 900  },
-      { t: '  [KeyManager] ✓ key extractable: false',          cls: 't-blue',  d: 1100 },
-      { t: '',                                                cls: '',         d: 1200 },
-      { t: '  [FileEncryptor] generating IV (12 bytes, random)...', cls: 't-gray',  d: 1350 },
-      { t: '  [FileEncryptor] iv: 3f a8 9c 11 7e 40 b2 c6 8d 21 fa 09', cls: 't-dim',   d: 1650 },
-      { t: '  [FileEncryptor] cipher: AES/GCM/NoPadding',     cls: 't-gray',  d: 1900 },
+      { t: '$ pionen-vault encrypt --file="photo_2026.jpg"', cls: 't-green', d: 0 },
+      { t: '', cls: '', d: 180 },
+      { t: '  [KeyManager]   requesting key from Keystore...', cls: 't-gray', d: 280 },
+      { t: '  [KeyManager] ✓ alias : PIONEN_FILE_KEY_7f3a9c2b', cls: 't-blue', d: 620 },
+      { t: '  [KeyManager] ✓ backend: StrongBox TEE', cls: 't-blue', d: 900 },
+      { t: '  [KeyManager] ✓ key extractable: false', cls: 't-blue', d: 1100 },
+      { t: '', cls: '', d: 1200 },
+      { t: '  [FileEncryptor] generating IV (12 bytes, random)...', cls: 't-gray', d: 1350 },
+      { t: '  [FileEncryptor] iv: 3f a8 9c 11 7e 40 b2 c6 8d 21 fa 09', cls: 't-dim', d: 1650 },
+      { t: '  [FileEncryptor] cipher: AES/GCM/NoPadding', cls: 't-gray', d: 1900 },
       { t: '  [FileEncryptor] streaming...  ████████████████ 100%', cls: 't-yellow', d: 2250 },
-      { t: '',                                                cls: '',         d: 2500 },
-      { t: '  [VaultEngine]   writing → .vault/8b2f1a7c.enc', cls: 't-gray',  d: 2650 },
-      { t: '  [VaultEngine] ✓ auth tag (128-bit): verified',  cls: 't-blue',  d: 2900 },
-      { t: '  [VaultEngine] ✓ metadata encrypted in SQLCipher',cls: 't-blue',  d: 3100 },
-      { t: '',                                                cls: '',         d: 3300 },
-      { t: '  ✓ plaintext never touched disk.',               cls: 't-green',  d: 3500 },
-      { t: '  ✓ key: non-extractable, hardware-bound.',       cls: 't-green',  d: 3700 },
-      { t: '  ✓ encrypted in 47ms.',                         cls: 't-green',  d: 3900 },
+      { t: '', cls: '', d: 2500 },
+      { t: '  [VaultEngine]   writing → .vault/8b2f1a7c.enc', cls: 't-gray', d: 2650 },
+      { t: '  [VaultEngine] ✓ auth tag (128-bit): verified', cls: 't-blue', d: 2900 },
+      { t: '  [VaultEngine] ✓ metadata encrypted in SQLCipher', cls: 't-blue', d: 3100 },
+      { t: '', cls: '', d: 3300 },
+      { t: '  ✓ plaintext never touched disk.', cls: 't-green', d: 3500 },
+      { t: '  ✓ key: non-extractable, hardware-bound.', cls: 't-green', d: 3700 },
+      { t: '  ✓ encrypted in 47ms.', cls: 't-green', d: 3900 },
     ];
 
     let termStarted = false;
