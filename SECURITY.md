@@ -16,7 +16,7 @@ Instead, report them privately:
    Go to → **Security** tab → **Report a vulnerability** → Fill in the form.
 
 2. **Email**  
-   Send details to: `security@[YOUR_DOMAIN]`  
+   Send details to: `support@pionen.in`  
    Encrypt with PGP if possible (key available on request).
 
 ### What to include
