@@ -83,6 +83,55 @@ class SecureCameraController @Inject constructor(
     }
     
     /**
+     * Capture a photo and return raw JPEG bytes securely.
+     */
+    suspend fun captureToByteArray(): ByteArray {
+        val capture = imageCapture
+            ?: throw IllegalStateException("Camera not initialized. Call initialize() first.")
+        
+        val image = suspendCancellableCoroutine<ImageProxy> { continuation ->
+            val executor: Executor = ContextCompat.getMainExecutor(context)
+            
+            capture.takePicture(executor, object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    continuation.resume(image)
+                }
+                
+                override fun onError(exception: ImageCaptureException) {
+                    continuation.resumeWithException(exception)
+                }
+            })
+        }
+        
+        return try {
+            val buffer = image.planes[0].buffer
+            val bytes = ByteArray(buffer.remaining())
+            buffer.get(bytes)
+            
+            var bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            
+            val rotationDegrees = image.imageInfo.rotationDegrees
+            if (rotationDegrees != 0) {
+                val matrix = Matrix()
+                matrix.postRotate(rotationDegrees.toFloat())
+                bitmap = Bitmap.createBitmap(
+                    bitmap, 0, 0,
+                    bitmap.width, bitmap.height,
+                    matrix, true
+                )
+            }
+            
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, outputStream)
+            bitmap.recycle()
+            
+            outputStream.toByteArray()
+        } finally {
+            image.close()
+        }
+    }
+
+    /**
      * Capture a photo directly into the encrypted vault.
      * 
      * @param fileName Optional custom filename (auto-generated if not provided)
@@ -90,75 +139,19 @@ class SecureCameraController @Inject constructor(
      */
     suspend fun captureToVault(
         fileName: String? = null
-    ): VaultFile = suspendCancellableCoroutine { continuation ->
-        val capture = imageCapture ?: run {
-            continuation.resumeWithException(
-                IllegalStateException("Camera not initialized. Call initialize() first.")
-            )
-            return@suspendCancellableCoroutine
+    ): VaultFile {
+        val jpegBytes = captureToByteArray()
+        
+        val actualFileName = fileName ?: run {
+            val timestamp = SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(Date())
+            "IMG_$timestamp.jpg"
         }
         
-        val executor: Executor = ContextCompat.getMainExecutor(context)
-        
-        capture.takePicture(executor, object : ImageCapture.OnImageCapturedCallback() {
-            override fun onCaptureSuccess(image: ImageProxy) {
-                try {
-                    // Convert ImageProxy to byte array
-                    val buffer = image.planes[0].buffer
-                    val bytes = ByteArray(buffer.remaining())
-                    buffer.get(bytes)
-                    
-                    // Decode to Bitmap for rotation correction
-                    var bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                    
-                    // Apply rotation if needed
-                    val rotationDegrees = image.imageInfo.rotationDegrees
-                    if (rotationDegrees != 0) {
-                        val matrix = Matrix()
-                        matrix.postRotate(rotationDegrees.toFloat())
-                        bitmap = Bitmap.createBitmap(
-                            bitmap, 0, 0, 
-                            bitmap.width, bitmap.height, 
-                            matrix, true
-                        )
-                    }
-                    
-                    // Compress to JPEG
-                    val outputStream = ByteArrayOutputStream()
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, outputStream)
-                    val jpegBytes = outputStream.toByteArray()
-                    
-                    // Generate filename
-                    val actualFileName = fileName ?: run {
-                        val timestamp = SimpleDateFormat(FILENAME_FORMAT, Locale.US)
-                            .format(Date())
-                        "IMG_$timestamp.jpg"
-                    }
-                    
-                    // Store encrypted in vault (blocking call in coroutine)
-                    kotlinx.coroutines.runBlocking {
-                        val vaultFile = vaultEngine.createFile(
-                            content = jpegBytes,
-                            fileName = actualFileName,
-                            mimeType = "image/jpeg"
-                        )
-                        continuation.resume(vaultFile)
-                    }
-                    
-                    // Clean up
-                    bitmap.recycle()
-                    
-                } catch (e: Exception) {
-                    continuation.resumeWithException(e)
-                } finally {
-                    image.close()
-                }
-            }
-            
-            override fun onError(exception: ImageCaptureException) {
-                continuation.resumeWithException(exception)
-            }
-        })
+        return vaultEngine.createFile(
+            content = jpegBytes,
+            fileName = actualFileName,
+            mimeType = "image/jpeg"
+        )
     }
     
     /**

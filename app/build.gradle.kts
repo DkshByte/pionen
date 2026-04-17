@@ -119,6 +119,7 @@ dependencies {
     // Core Android
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-process:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.2")
     
     // Compose
@@ -184,8 +185,8 @@ dependencies {
     
     // Tor Integration (Guardian Project) - Requires special repository setup
     // To enable, add Guardian Project's Maven repository and uncomment:
-    // implementation("info.guardianproject:tor-android:0.4.8.12")
-    // implementation("info.guardianproject:jtorctl:0.4.5.7")
+    implementation("info.guardianproject:tor-android:0.4.8.12")
+    implementation("info.guardianproject:jtorctl:0.4.5.7")
     // See: https://github.com/nickcoolshen/nickcoolshen.github.io for mirror repo
     
     // Testing

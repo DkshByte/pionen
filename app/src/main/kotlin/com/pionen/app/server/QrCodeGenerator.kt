@@ -59,10 +59,11 @@ object QrCodeGenerator {
         serverInfo: SecureWebServer.ServerInfo,
         size: Int = 512
     ): Bitmap? {
-        // Include token in URL for one-click access
-        val fullUrl = "${serverInfo.url}?token=${serverInfo.token}"
+        // SECURITY: Only encode the URL — never embed the access token.
+        // The token must be entered manually on the web login page to prevent
+        // leakage via browser history, Referer headers, and shoulder-surfing.
         return generate(
-            content = fullUrl,
+            content = serverInfo.url,
             size = size,
             backgroundColor = 0xFF121215.toInt(),  // Dark background
             foregroundColor = 0xFF4ade80.toInt()   // VaultGreen

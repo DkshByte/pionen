@@ -10,6 +10,9 @@ import com.pionen.app.core.crypto.SecureBuffer
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
@@ -29,10 +32,14 @@ import javax.inject.Singleton
 @Singleton
 class VaultEngine @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val lockManager: com.pionen.app.core.security.LockManager,
     private val keyManager: KeyManager,
     private val fileEncryptor: FileEncryptor,
     private val vaultFileDao: VaultFileDao
 ) {
+
+    private val isDecoyActive: Boolean
+        get() = (lockManager.lockState.value as? com.pionen.app.core.security.LockState.Unlocked)?.isDecoy == true
     
     private val vaultDirectory: File by lazy {
         File(context.filesDir, "vault").apply { mkdirs() }
@@ -41,24 +48,34 @@ class VaultEngine @Inject constructor(
     /**
      * Get all files in the vault as a Flow.
      */
-    fun getAllFiles(): Flow<List<VaultFile>> = vaultFileDao.getAllFiles()
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    fun getAllFiles(): Flow<List<VaultFile>> = lockManager.lockState
+        .filterIsInstance<com.pionen.app.core.security.LockState.Unlocked>()
+        .flatMapLatest { state -> vaultFileDao.getAllFiles(state.isDecoy) }
     
     /**
      * Get recent files.
      */
-    fun getRecentFiles(limit: Int = 10): Flow<List<VaultFile>> = 
-        vaultFileDao.getRecentFiles(limit)
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    fun getRecentFiles(limit: Int = 10): Flow<List<VaultFile>> = lockManager.lockState
+        .filterIsInstance<com.pionen.app.core.security.LockState.Unlocked>()
+        .flatMapLatest { state -> vaultFileDao.getRecentFiles(limit, state.isDecoy) }
     
     /**
      * Search files by name.
      */
-    fun searchFiles(query: String): Flow<List<VaultFile>> = 
-        vaultFileDao.searchFiles(query)
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    fun searchFiles(query: String): Flow<List<VaultFile>> = lockManager.lockState
+        .filterIsInstance<com.pionen.app.core.security.LockState.Unlocked>()
+        .flatMapLatest { state -> vaultFileDao.searchFiles(query, state.isDecoy) }
     
     /**
      * Get a specific file.
      */
-    suspend fun getFile(fileId: UUID): VaultFile? = vaultFileDao.getFile(fileId)
+    suspend fun getFile(fileId: UUID): VaultFile? {
+        val file = vaultFileDao.getFile(fileId) ?: return null
+        return if (file.isDecoy == isDecoyActive) file else null
+    }
     
     /**
      * Import an external file into the vault.
@@ -90,7 +107,8 @@ class VaultEngine @Inject constructor(
             mimeType = mimeType,
             originalSize = result.originalSize,
             encryptedSize = result.encryptedSize,
-            isImported = true // Mark as imported for warning purposes
+            isImported = true, // Mark as imported for warning purposes
+            isDecoy = isDecoyActive
         )
         
         vaultFileDao.insert(vaultFile)
@@ -122,7 +140,8 @@ class VaultEngine @Inject constructor(
             mimeType = mimeType,
             originalSize = result.originalSize,
             encryptedSize = result.encryptedSize,
-            isImported = false
+            isImported = false,
+            isDecoy = isDecoyActive
         )
         
         vaultFileDao.insert(vaultFile)
@@ -149,7 +168,8 @@ class VaultEngine @Inject constructor(
             mimeType = mimeType,
             originalSize = result.originalSize,
             encryptedSize = result.encryptedSize,
-            isImported = false
+            isImported = false,
+            isDecoy = isDecoyActive
         )
         
         vaultFileDao.insert(vaultFile)
@@ -234,7 +254,7 @@ class VaultEngine @Inject constructor(
      * @return PanicWipeResult with statistics
      */
     suspend fun panicWipe(): PanicWipeResult = withContext(Dispatchers.IO) {
-        val fileCount = vaultFileDao.getFileCount()
+        val fileCount = vaultFileDao.getTotalFileCount()
         
         // Step 1: Destroy ALL keys (CRITICAL)
         val keysDestroyed = keyManager.destroyAllKeys()
@@ -261,9 +281,10 @@ class VaultEngine @Inject constructor(
      * Get vault statistics.
      */
     suspend fun getVaultStats(): VaultStats = withContext(Dispatchers.IO) {
+        val decoy = isDecoyActive
         VaultStats(
-            fileCount = vaultFileDao.getFileCount(),
-            totalOriginalSize = vaultFileDao.getTotalOriginalSize() ?: 0L,
+            fileCount = vaultFileDao.getFileCount(decoy),
+            totalOriginalSize = vaultFileDao.getTotalOriginalSize(decoy) ?: 0L,
             vaultDirectorySize = calculateDirectorySize(vaultDirectory)
         )
     }

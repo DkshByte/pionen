@@ -41,7 +41,7 @@ import com.pionen.app.ui.components.MinimalBottomBar
 import com.pionen.app.ui.components.SortOption
 import com.pionen.app.ui.components.WebAccessDialog
 import com.pionen.app.server.SecureWebServer
-import com.pionen.app.ui.screens.PixelBadge
+import com.pionen.app.ui.components.*
 import com.pionen.app.ui.theme.*
 import com.pionen.app.ui.viewmodels.VaultViewModel
 import com.pionen.app.ui.viewmodels.WebServerViewModel

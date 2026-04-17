@@ -1,7 +1,10 @@
 package com.pionen.app.server
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
+import android.os.Build
 import com.pionen.app.core.SecureLogger
 import com.pionen.app.core.vault.VaultEngine
 import fi.iki.elonen.NanoHTTPD
@@ -75,6 +78,12 @@ class SecureWebServer @Inject constructor(
     private val failedAttempts = ConcurrentHashMap<String, FailedAttemptInfo>()
     private val activeSessions = ConcurrentHashMap<String, SessionInfo>()
     
+    /**
+     * SECURITY: Lock-state check. Set by the caller (e.g. WebServerService)
+     * to gate API access on vault unlock state. Returns true when vault is unlocked.
+     */
+    var isVaultUnlocked: () -> Boolean = { true }
+    
     private var lastActivityTime = System.currentTimeMillis()
     private var timeoutJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -106,13 +115,15 @@ class SecureWebServer @Inject constructor(
             // Create and start server with HTTPS
             server = PionenHttpServer(serverPort).also { srv ->
                 // Enable HTTPS with self-signed certificate
+                // SECURITY: TLS is mandatory — refuse to start without it.
                 try {
                     val sslContext = createSSLContext()
                     srv.makeSecure(sslContext.serverSocketFactory, null)
                     SecureLogger.i(TAG, "HTTPS enabled with TLS encryption")
                 } catch (e: Exception) {
-                    SecureLogger.w(TAG, "Failed to enable HTTPS, falling back to HTTP: ${e.message}")
-                    // Continue without HTTPS as fallback
+                    SecureLogger.e(TAG, "HTTPS initialization failed — refusing to start", e)
+                    _serverState.value = ServerState.Error("TLS required but failed: ${e.message}")
+                    return Result.failure(SecurityException("Cannot start server without TLS"))
                 }
                 srv.start()
             }
@@ -268,7 +279,10 @@ class SecureWebServer @Inject constructor(
             }
         }
         
-        val isValid = token == accessToken
+        val isValid = java.security.MessageDigest.isEqual(
+            token.toByteArray(Charsets.UTF_8), 
+            accessToken.toByteArray(Charsets.UTF_8)
+        )
         
         if (!isValid) {
             // Track failed attempt
@@ -329,33 +343,107 @@ class SecureWebServer @Inject constructor(
      * Find an available port starting from default
      */
     private fun findAvailablePort(): Int {
-        return DEFAULT_PORT
+        // Try default port first, then scan nearby ports
+        for (port in DEFAULT_PORT..(DEFAULT_PORT + 50)) {
+            try {
+                java.net.ServerSocket(port).use { return port }
+            } catch (e: Exception) {
+                // Port in use, try next
+            }
+        }
+        // Last resort: let the OS pick an ephemeral port
+        return java.net.ServerSocket(0).use { it.localPort }
     }
     
     /**
-     * Get device's local IP address
+     * Get the device's local LAN IP address.
+     *
+     * Strategy (in priority order):
+     *  1. ConnectivityManager + LinkProperties  (API 23+, correct on all Android versions)
+     *  2. Enumerate network interfaces            (fallback for edge cases)
+     *  3. Deprecated WifiManager.connectionInfo  (last resort, Android <10 only)
      */
-    @Suppress("DEPRECATION")
     private fun getLocalIpAddress(): String? {
-        return try {
-            val wifiManager = context.applicationContext
-                .getSystemService(Context.WIFI_SERVICE) as WifiManager
-            val wifiInfo = wifiManager.connectionInfo
-            val ipInt = wifiInfo.ipAddress
-            
-            if (ipInt == 0) return null
-            
-            String.format(
-                "%d.%d.%d.%d",
-                ipInt and 0xff,
-                ipInt shr 8 and 0xff,
-                ipInt shr 16 and 0xff,
-                ipInt shr 24 and 0xff
-            )
+        // --- Strategy 1: ConnectivityManager (recommended modern API) ---
+        try {
+            val cm = context.applicationContext
+                .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val activeNetwork = cm.activeNetwork ?: run {
+                SecureLogger.w(TAG, "No active network")
+                null
+            }
+            if (activeNetwork != null) {
+                val caps = cm.getNetworkCapabilities(activeNetwork)
+                // Accept both WiFi and Ethernet (e.g. USB-tethered ethernet)
+                val isLocalNetwork = caps != null && (
+                    caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                    caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+                )
+                if (isLocalNetwork) {
+                    val linkProps = cm.getLinkProperties(activeNetwork)
+                    linkProps?.linkAddresses?.forEach { linkAddress ->
+                        val addr = linkAddress.address
+                        if (!addr.isLoopbackAddress && addr is java.net.Inet4Address) {
+                            val ip = addr.hostAddress
+                            if (!ip.isNullOrEmpty()) {
+                                SecureLogger.i(TAG, "IP via ConnectivityManager: $ip")
+                                return ip
+                            }
+                        }
+                    }
+                }
+            }
         } catch (e: Exception) {
-            SecureLogger.e(TAG, "Failed to get IP address", e)
-            null
+            SecureLogger.w(TAG, "ConnectivityManager IP lookup failed: ${e.message}")
         }
+
+        // --- Strategy 2: NetworkInterface enumeration ---
+        try {
+            java.net.NetworkInterface.getNetworkInterfaces()
+                ?.toList()
+                ?.flatMap { it.inetAddresses.toList() }
+                ?.firstOrNull { addr ->
+                    !addr.isLoopbackAddress &&
+                    addr is java.net.Inet4Address &&
+                    addr.isSiteLocalAddress
+                }
+                ?.let { addr ->
+                    val ip = addr.hostAddress
+                    if (!ip.isNullOrEmpty()) {
+                        SecureLogger.i(TAG, "IP via NetworkInterface: $ip")
+                        return ip
+                    }
+                }
+        } catch (e: Exception) {
+            SecureLogger.w(TAG, "NetworkInterface IP lookup failed: ${e.message}")
+        }
+
+        // --- Strategy 3: Deprecated WifiManager (Android < 10 fallback only) ---
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            try {
+                @Suppress("DEPRECATION")
+                val wifiManager = context.applicationContext
+                    .getSystemService(Context.WIFI_SERVICE) as WifiManager
+                @Suppress("DEPRECATION")
+                val ipInt = wifiManager.connectionInfo.ipAddress
+                if (ipInt != 0) {
+                    val ip = String.format(
+                        "%d.%d.%d.%d",
+                        ipInt and 0xff,
+                        ipInt shr 8 and 0xff,
+                        ipInt shr 16 and 0xff,
+                        ipInt shr 24 and 0xff
+                    )
+                    SecureLogger.i(TAG, "IP via WifiManager (legacy): $ip")
+                    return ip
+                }
+            } catch (e: Exception) {
+                SecureLogger.w(TAG, "WifiManager IP lookup failed: ${e.message}")
+            }
+        }
+
+        SecureLogger.e(TAG, "Could not determine local IP address")
+        return null
     }
     
     /**
@@ -391,8 +479,10 @@ class SecureWebServer @Inject constructor(
             
             // All API endpoints require authentication
             if (uri.startsWith("/api/")) {
+                // SECURITY: Only accept token from header or HttpOnly cookie.
+                // NEVER from query params (leaks via Referer, browser history, logs).
                 val token = session.headers["x-access-token"] 
-                    ?: session.parms["token"]
+                    ?: session.cookies?.read("auth_token")
                     ?: ""
                 
                 if (!validateToken(clientIp, token)) {
@@ -400,6 +490,15 @@ class SecureWebServer @Inject constructor(
                         Response.Status.UNAUTHORIZED,
                         MIME_PLAINTEXT,
                         "Invalid or missing access token"
+                    )
+                }
+                
+                // SECURITY: Reject all API requests while vault is locked
+                if (!isVaultUnlocked()) {
+                    return newFixedLengthResponse(
+                        Response.Status.FORBIDDEN,
+                        "application/json",
+                        """{"success":false,"error":"Vault is locked"}"""
                     )
                 }
                 
@@ -424,6 +523,9 @@ class SecureWebServer @Inject constructor(
         }
         
         private fun serveAsset(path: String): Response {
+            if (path.contains("..") || path.contains("//")) {
+                return newFixedLengthResponse(Response.Status.FORBIDDEN, MIME_PLAINTEXT, "Forbidden")
+            }
             return try {
                 val stream = context.assets.open("web/$path")
                 val mimeType = when {
@@ -474,11 +576,13 @@ class SecureWebServer @Inject constructor(
                 put("success", true)
                 put("message", "Authenticated successfully")
             }
-            return newFixedLengthResponse(
+            val response = newFixedLengthResponse(
                 Response.Status.OK,
                 "application/json",
                 json.toString()
             )
+            response.addHeader("Set-Cookie", "auth_token=$accessToken; Path=/; HttpOnly; SameSite=Strict; Secure")
+            return response
         }
         
         private fun handleFileList(): Response {
@@ -535,55 +639,43 @@ class SecureWebServer @Inject constructor(
                     )
                 }
                 
-                // Parse multipart data
-                val files = HashMap<String, String>()
-                val params = HashMap<String, String>()
-                session.parseBody(files)
+                // Read raw body stream directly to bypass caching
+                val fileNameRaw = session.headers["x-file-name"] ?: "uploaded_file_${System.currentTimeMillis()}"
+                val fileName = try {
+                    java.net.URLDecoder.decode(fileNameRaw, "UTF-8")
+                } catch (e: Exception) {
+                    fileNameRaw
+                }
+                val mimeType = session.headers["content-type"] ?: guessMimeType(fileName)
                 
-                // Get the uploaded file
-                val tempFilePath = files["file"]
-                val fileName = session.parms["filename"] 
-                    ?: extractFilename(session.headers["content-disposition"])
-                    ?: "uploaded_file_${System.currentTimeMillis()}"
-                
-                val mimeType = session.parms["mimeType"]
-                    ?: guessMimeType(fileName)
-                
-                if (tempFilePath == null) {
-                    return newFixedLengthResponse(
-                        Response.Status.BAD_REQUEST,
-                        "application/json",
-                        """{"success":false,"error":"No file provided"}"""
-                    )
+                // Immediately stream from network -> RAM chunk -> Encrypted flash storage
+                val boundedInputStream = object : java.io.InputStream() {
+                    private var limit = contentLength
+                    private val source = session.inputStream
+                    
+                    override fun read(): Int {
+                        if (limit <= 0) return -1
+                        val result = source.read()
+                        if (result != -1) limit--
+                        return result
+                    }
+                    
+                    override fun read(b: ByteArray, off: Int, len: Int): Int {
+                        if (limit <= 0) return -1
+                        val maxRead = minOf(len.toLong(), limit).toInt()
+                        val result = source.read(b, off, maxRead)
+                        if (result != -1) limit -= result
+                        return result
+                    }
                 }
                 
-                // Read and encrypt the file securely
-                val tempFile = java.io.File(tempFilePath)
-                if (!tempFile.exists()) {
-                    return newFixedLengthResponse(
-                        Response.Status.BAD_REQUEST,
-                        "application/json",
-                        """{"success":false,"error":"Upload failed"}"""
-                    )
-                }
-                
-                // Securely read file content into memory
-                val fileBytes = tempFile.inputStream().use { it.readBytes() }
-                
-                // Immediately delete temp file
-                secureDeleteFile(tempFile)
-                
-                // Create encrypted file in vault
                 val vaultFile = runBlocking {
-                    vaultEngine.createFile(
-                        content = fileBytes,
+                    vaultEngine.createFileFromStream(
+                        inputStream = boundedInputStream,
                         fileName = sanitizeFileName(fileName),
                         mimeType = mimeType
                     )
                 }
-                
-                // Wipe the byte array from memory
-                java.util.Arrays.fill(fileBytes, 0.toByte())
                 
                 SecureLogger.i(TAG, "File uploaded and encrypted: ${vaultFile.fileName}")
                 
@@ -722,26 +814,20 @@ class SecureWebServer @Inject constructor(
                         "File not found"
                     )
                 
-                // Decrypt file content in memory
-                val decryptedContent = runBlocking { 
-                    vaultEngine.openFile(uuid) 
-                }
+                // Stream decryption output straight to response logic (zero-cache memory leak fixed)
+                val inputStream = runBlocking { vaultEngine.getFileStream(uuid) }
                 
-                // Get data from the buffer
-                val data = decryptedContent.buffer.copyData()
-                val inputStream = ByteArrayInputStream(data)
-                
-                val response = newChunkedResponse(
+                val response = newFixedLengthResponse(
                     Response.Status.OK,
                     file.mimeType,
-                    inputStream
+                    inputStream,
+                    file.originalSize
                 )
                 
                 response.addHeader(
                     "Content-Disposition",
-                    "attachment; filename=\"${file.fileName}\""
+                    "attachment; filename=\"${sanitizeDispositionFilename(file.fileName)}\""
                 )
-                response.addHeader("Content-Length", data.size.toString())
                 
                 // Prevent caching - stream from memory only
                 addNoCacheHeaders(response)
@@ -788,12 +874,8 @@ class SecureWebServer @Inject constructor(
                         "File not found"
                     )
                 
-                // Decrypt file content in memory
-                val decryptedContent = runBlocking { 
-                    vaultEngine.openFile(uuid) 
-                }
-                
-                val data = decryptedContent.buffer.copyData()
+                // Streaming directly from CipherInputStream completely bypassing App Max Permitted Java Heap memory bounds
+                val fileSize = file.originalSize
                 val mimeType = file.mimeType
                 
                 // Check for Range header (for video/audio seeking)
@@ -806,22 +888,58 @@ class SecureWebServer @Inject constructor(
                     
                     val start = rangeParts[0].toLongOrNull() ?: 0L
                     val end = if (rangeParts.size > 1 && rangeParts[1].isNotEmpty()) {
-                        rangeParts[1].toLongOrNull() ?: (data.size - 1).toLong()
+                        rangeParts[1].toLongOrNull() ?: (fileSize - 1)
                     } else {
-                        (data.size - 1).toLong()
+                        (fileSize - 1)
                     }
                     
-                    val length = (end - start + 1).toInt()
-                    val partialData = data.copyOfRange(start.toInt(), (end + 1).toInt())
+                    val length = (end - start + 1)
+                    
+                    val inputStream = runBlocking { vaultEngine.getFileStream(uuid) }
+                    try {
+                        if (start > 0) {
+                            var skipped = 0L
+                            while (skipped < start) {
+                                val jump = inputStream.skip(start - skipped)
+                                if (jump <= 0L) {
+                                    inputStream.read() // force fallback
+                                    skipped++
+                                } else {
+                                    skipped += jump
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        SecureLogger.e(TAG, "Jump to seek marker inside CipherInputStream failed", e)
+                    }
+
+                    // Strict byte bounding limit wrapping stream to prevent over-reading in Chunked Request
+                    val boundedStream = object : java.io.InputStream() {
+                        var remaining = length
+                        override fun read(): Int {
+                            if (remaining <= 0) return -1
+                            val b = inputStream.read()
+                            if (b != -1) remaining--
+                            return b
+                        }
+                        override fun read(b: ByteArray, off: Int, len: Int): Int {
+                            if (remaining <= 0) return -1
+                            val bytesToRead = minOf(len.toLong(), remaining).toInt()
+                            val readBytes = inputStream.read(b, off, bytesToRead)
+                            if (readBytes != -1) remaining -= readBytes
+                            return readBytes
+                        }
+                        override fun close() = inputStream.close()
+                    }
                     
                     val response = newFixedLengthResponse(
                         Response.Status.PARTIAL_CONTENT,
                         mimeType,
-                        ByteArrayInputStream(partialData),
-                        length.toLong()
+                        boundedStream,
+                        length
                     )
                     
-                    response.addHeader("Content-Range", "bytes $start-$end/${data.size}")
+                    response.addHeader("Content-Range", "bytes $start-$end/$fileSize")
                     response.addHeader("Accept-Ranges", "bytes")
                     response.addHeader("Content-Length", length.toString())
                     
@@ -830,20 +948,21 @@ class SecureWebServer @Inject constructor(
                     
                     response
                 } else {
-                    // Full content response - use chunked streaming
-                    val response = newChunkedResponse(
+                    val inputStream = runBlocking { vaultEngine.getFileStream(uuid) }
+                    // Full content response - use fixed length stream
+                    val response = newFixedLengthResponse(
                         Response.Status.OK,
                         mimeType,
-                        ByteArrayInputStream(data)
+                        inputStream,
+                        fileSize
                     )
                     
                     response.addHeader("Accept-Ranges", "bytes")
-                    response.addHeader("Content-Length", data.size.toString())
                     
                     // Set inline disposition for viewing in browser
                     response.addHeader(
                         "Content-Disposition",
-                        "inline; filename=\"${file.fileName}\""
+                        "inline; filename=\"${sanitizeDispositionFilename(file.fileName)}\""
                     )
                     
                     // Prevent caching - stream from memory only
@@ -855,6 +974,19 @@ class SecureWebServer @Inject constructor(
                 SecureLogger.e(TAG, "Failed to view file", e)
                 errorResponse("Failed to view file")
             }
+        }
+        
+        /**
+         * Sanitize a filename for use in Content-Disposition headers.
+         * Prevents header injection via quotes, newlines, or control chars.
+         */
+        private fun sanitizeDispositionFilename(name: String): String {
+            return name
+                .replace("\"", "'")
+                .replace("\r", "")
+                .replace("\n", "")
+                .replace("\u0000", "")
+                .take(200)
         }
         
         private fun errorResponse(message: String): Response {

@@ -49,7 +49,8 @@ object AppModule {
             "pionen_vault.db"
         )
             .openHelperFactory(factory)
-            .fallbackToDestructiveMigration()
+            .setJournalMode(androidx.room.RoomDatabase.JournalMode.TRUNCATE) // SECURITY: Prevent WAL metadata leaks
+            .addMigrations(VaultDatabase.MIGRATION_1_2) // Add decoy migration
             .build()
         
         val db = buildDb()
@@ -65,12 +66,15 @@ object AppModule {
         } catch (e: Exception) {
             android.util.Log.e("AppModule", "Database key mismatch – resetting DB", e)
             try { db.close() } catch (_: Exception) {}
-            val dbFile = context.getDatabasePath("pionen_vault.db")
-            dbFile.delete()
-            java.io.File("${dbFile.path}-journal").delete()
-            java.io.File("${dbFile.path}-wal").delete()
-            java.io.File("${dbFile.path}-shm").delete()
-            buildDb()
+            
+            // Correctly delete the database using Android API which handles WAL/journal
+            // and ensures locks are respected during cleanup.
+            context.deleteDatabase("pionen_vault.db")
+            
+            val newDb = buildDb()
+            // Force synchronous initialization to ensure it works before returning
+            newDb.openHelper.writableDatabase
+            newDb
         }
     }
     

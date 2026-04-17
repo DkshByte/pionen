@@ -1,8 +1,7 @@
 package com.pionen.app.core.security
 
 import android.content.Context
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
+import android.os.SystemClock
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -26,6 +25,7 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.pionen.app.core.crypto.KeyManager
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -42,18 +42,19 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  */
 @Singleton
 class LockManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val keyManager: KeyManager
 ) {
     
     companion object {
-        private val KEY_AUTH_METHOD = stringPreferencesKey("auth_method")
         private val KEY_BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
         private val KEY_LOCK_TIMEOUT = longPreferencesKey("lock_timeout_ms")
         private val KEY_PIN_HASH = stringPreferencesKey("pin_hash_v2")
         private val KEY_PIN_SALT = stringPreferencesKey("pin_salt_v2")
         
-        private const val DEFAULT_LOCK_TIMEOUT = 0L
+        private const val DEFAULT_LOCK_TIMEOUT = 5 * 60 * 1000L // 5 minutes
         private const val MAX_FAILED_ATTEMPTS = 5
+        private const val PIN_LOCKOUT_DURATION_MS = 5 * 60 * 1000L // 5-minute lockout
         private const val PBKDF2_ITERATIONS = 100_000
         private const val KEY_LENGTH = 256
     }
@@ -64,7 +65,11 @@ class LockManager @Inject constructor(
     private val _failedAttempts = MutableStateFlow(0)
     val failedAttempts: StateFlow<Int> = _failedAttempts
     
-    private var lastActivityTime = System.currentTimeMillis()
+    // Use monotonic clock to prevent manipulation via wall-clock changes
+    private var lastActivityTime = SystemClock.elapsedRealtime()
+    
+    // Monotonic timestamp when PIN lockout started (0 = no lockout)
+    private var pinLockoutStartTime = 0L
     
     // Track if biometric step is complete (for two-factor)
     private val _biometricPassed = MutableStateFlow(false)
@@ -122,6 +127,18 @@ class LockManager @Inject constructor(
      * Verify PIN against stored hash.
      */
     suspend fun verifyPin(pin: String): Boolean {
+        // Check PIN lockout
+        if (pinLockoutStartTime > 0) {
+            val elapsed = SystemClock.elapsedRealtime() - pinLockoutStartTime
+            if (elapsed < PIN_LOCKOUT_DURATION_MS) {
+                return false // Still locked out
+            } else {
+                // Lockout expired
+                pinLockoutStartTime = 0
+                _failedAttempts.value = 0
+            }
+        }
+        
         val prefs = context.dataStore.data.first()
         val storedHash = prefs[KEY_PIN_HASH] ?: return false
         val saltHex = prefs[KEY_PIN_SALT] ?: return false
@@ -129,28 +146,59 @@ class LockManager @Inject constructor(
         val salt = saltHex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
         val inputHash = hashPinPbkdf2(pin, salt)
         
-        return if (inputHash == storedHash) {
+        val isValid = java.security.MessageDigest.isEqual(
+            inputHash.toByteArray(Charsets.UTF_8),
+            storedHash.toByteArray(Charsets.UTF_8)
+        )
+        
+        return if (isValid) {
             // Both factors complete - unlock!
-            _lockState.value = LockState.Unlocked(System.currentTimeMillis())
+            _lockState.value = LockState.Unlocked(SystemClock.elapsedRealtime(), isDecoy = false)
             _failedAttempts.value = 0
             _biometricPassed.value = false
-            lastActivityTime = System.currentTimeMillis()
+            pinLockoutStartTime = 0
+            lastActivityTime = SystemClock.elapsedRealtime()
             true
         } else {
             _failedAttempts.value++
+            if (_failedAttempts.value >= MAX_FAILED_ATTEMPTS) {
+                pinLockoutStartTime = SystemClock.elapsedRealtime()
+            }
             false
         }
     }
     
     /**
-     * PBKDF2 hashing with SHA-256.
+     * Verify a PIN against stored hash WITHOUT changing lock state.
+     * Used by DecoyVaultManager to detect PIN collisions.
+     * 
+     * @param pin The PIN to check
+     * @return true if the PIN matches the stored real vault PIN
+     */
+    suspend fun verifyPinWithoutUnlock(pin: String): Boolean {
+        val prefs = context.dataStore.data.first()
+        val storedHash = prefs[KEY_PIN_HASH] ?: return false
+        val saltHex = prefs[KEY_PIN_SALT] ?: return false
+        
+        val salt = saltHex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+        val inputHash = hashPinPbkdf2(pin, salt)
+        
+        return java.security.MessageDigest.isEqual(
+            inputHash.toByteArray(Charsets.UTF_8),
+            storedHash.toByteArray(Charsets.UTF_8)
+        )
+    }
+    
+    /**
+     * PBKDF2 hashing with SHA-256 + Hardware HMAC.
      */
     private fun hashPinPbkdf2(pin: String, salt: ByteArray): String {
         val spec = PBEKeySpec(pin.toCharArray(), salt, PBKDF2_ITERATIONS, KEY_LENGTH)
         val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-        val hash = factory.generateSecret(spec).encoded
+        val pbkdf2Hash = factory.generateSecret(spec).encoded
         spec.clearPassword()
-        return hash.joinToString("") { "%02x".format(it) }
+        val protectedHash = keyManager.hashWithHardwareMac(pbkdf2Hash)
+        return protectedHash.joinToString("") { "%02x".format(it) }
     }
     
     /**
@@ -166,9 +214,17 @@ class LockManager @Inject constructor(
      * but the ViewModel tracks that we're in decoy mode separately.
      */
     fun unlockAsDecoy() {
-        _lockState.value = LockState.Unlocked(System.currentTimeMillis())
+        _lockState.value = LockState.Unlocked(SystemClock.elapsedRealtime(), isDecoy = true)
         _biometricPassed.value = false
-        lastActivityTime = System.currentTimeMillis()
+        lastActivityTime = SystemClock.elapsedRealtime()
+    }
+    
+    /**
+     * Force immediate lock (e.g. when app goes to background)
+     */
+    fun lockVault() {
+        _lockState.value = LockState.Locked
+        _biometricPassed.value = false
     }
     
     /**
@@ -229,12 +285,13 @@ class LockManager @Inject constructor(
     
     /**
      * Called when app goes to background.
-     * Does NOT lock during biometric prompt since the system shows it on top of the activity.
+     * Always locks unconditionally — if a biometric prompt was showing,
+     * Android will dismiss it automatically and the user must re-authenticate.
+     * This prevents the bypass where backgrounding during a prompt skips locking.
      */
     fun onAppBackgrounded() {
-        if (!_isBiometricPromptShowing.value) {
-            lock()
-        }
+        _isBiometricPromptShowing.value = false
+        lock()
     }
     
     /**
@@ -248,15 +305,19 @@ class LockManager @Inject constructor(
      * Record user activity.
      */
     fun recordActivity() {
-        lastActivityTime = System.currentTimeMillis()
+        lastActivityTime = SystemClock.elapsedRealtime()
     }
     
     /**
      * Check inactivity lock.
+     *
+     * TODO: This method is not currently called from anywhere. To enable
+     *       inactivity-based auto-lock, wire it into a periodic check
+     *       (e.g. via a LaunchedEffect timer in the Vault screen).
      */
     suspend fun checkInactivityLock() {
         val timeout = context.dataStore.data.first()[KEY_LOCK_TIMEOUT] ?: DEFAULT_LOCK_TIMEOUT
-        if (timeout > 0 && System.currentTimeMillis() - lastActivityTime > timeout) {
+        if (timeout > 0 && SystemClock.elapsedRealtime() - lastActivityTime > timeout) {
             lock()
         }
     }
@@ -283,16 +344,7 @@ class LockManager @Inject constructor(
  */
 sealed class LockState {
     object Locked : LockState()
-    data class Unlocked(val unlockedAt: Long) : LockState()
-}
-
-/**
- * Authentication method.
- */
-enum class AuthMethod {
-    BIOMETRIC,
-    PIN,
-    PATTERN
+    data class Unlocked(val unlockedAt: Long, val isDecoy: Boolean = false) : LockState()
 }
 
 /**

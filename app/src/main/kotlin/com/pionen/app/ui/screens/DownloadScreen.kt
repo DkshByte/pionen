@@ -84,10 +84,11 @@ fun DownloadScreen(
             ) {
                 // Security notice card
                 Card(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = androidx.compose.ui.graphics.RectangleShape,
                     colors = CardDefaults.cardColors(
-                        containerColor = VaultGreenSubtle.copy(alpha = 0.2f)
-                    )
+                        containerColor = NeonGlassSurface
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, NeonGlassBorder)
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -96,14 +97,14 @@ fun DownloadScreen(
                         Box(
                             modifier = Modifier
                                 .size(36.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(VaultGreen.copy(alpha = 0.2f)),
+                                .clip(androidx.compose.ui.graphics.RectangleShape)
+                                .background(NeonGreen.copy(alpha = 0.2f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Lock,
                                 contentDescription = null,
-                                tint = VaultGreen,
+                                tint = NeonGreen,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -112,7 +113,7 @@ fun DownloadScreen(
                             Text(
                                 text = "End-to-End Encrypted",
                                 style = MaterialTheme.typography.titleSmall,
-                                color = VaultGreen
+                                color = NeonGreen
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
@@ -134,7 +135,7 @@ fun DownloadScreen(
                     placeholder = { Text("https://example.com/file.pdf", color = TextMuted) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = androidx.compose.ui.graphics.RectangleShape,
                     leadingIcon = {
                         Icon(Icons.Default.Link, contentDescription = null, tint = TextMuted)
                     },
@@ -158,11 +159,11 @@ fun DownloadScreen(
                     ),
                     enabled = downloadProgress !is DownloadProgress.Downloading,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = VaultGreen,
+                        focusedBorderColor = NeonGreen,
                         unfocusedBorderColor = GlassBorder.copy(alpha = 0.3f),
                         focusedTextColor = TextPrimary,
                         unfocusedTextColor = TextPrimary,
-                        cursorColor = VaultGreen
+                        cursorColor = ElectricCyan
                     )
                 )
                 
@@ -173,15 +174,15 @@ fun DownloadScreen(
                     onClick = { viewModel.downloadToVault(url) },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = url.isNotBlank() && downloadProgress !is DownloadProgress.Downloading,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = androidx.compose.ui.graphics.RectangleShape,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = VaultGreen,
-                        disabledContainerColor = VaultGreen.copy(alpha = 0.3f)
+                        containerColor = NeonGreenDark,
+                        disabledContainerColor = NeonGreenDark.copy(alpha = 0.3f)
                     )
                 ) {
-                    Icon(Icons.Default.Download, contentDescription = null, tint = Color.Black)
+                    Icon(Icons.Default.Download, contentDescription = null, tint = Color.White)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Download to Vault", color = Color.Black)
+                    Text("Download to Vault", color = Color.White, style = MaterialTheme.typography.titleSmall)
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -203,14 +204,14 @@ fun DownloadScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .clip(androidx.compose.ui.graphics.RectangleShape)
                                     .background(DarkCard)
                                     .padding(16.dp)
                             ) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(24.dp),
                                     strokeWidth = 2.dp,
-                                    color = VaultGreen
+                                    color = ElectricCyan
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
@@ -223,7 +224,7 @@ fun DownloadScreen(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .clip(androidx.compose.ui.graphics.RectangleShape)
                                     .background(DarkCard)
                                     .padding(16.dp)
                             ) {
@@ -235,7 +236,7 @@ fun DownloadScreen(
                                     if (progress.percentComplete >= 0) {
                                         Text(
                                             "${progress.percentComplete.toInt()}%",
-                                            color = VaultGreen
+                                            color = NeonGreen
                                         )
                                     }
                                 }
@@ -254,8 +255,8 @@ fun DownloadScreen(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .height(6.dp)
-                                            .clip(RoundedCornerShape(3.dp)),
-                                        color = VaultGreen,
+                                            .clip(androidx.compose.ui.graphics.RectangleShape),
+                                        color = NeonGreen,
                                         trackColor = DarkSurfaceVariant
                                     )
                                 } else {
@@ -264,7 +265,7 @@ fun DownloadScreen(
                                             .fillMaxWidth()
                                             .height(6.dp)
                                             .clip(RoundedCornerShape(3.dp)),
-                                        color = VaultGreen,
+                                        color = NeonGreen,
                                         trackColor = DarkSurfaceVariant
                                     )
                                 }
@@ -281,22 +282,22 @@ fun DownloadScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .scale(scale)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(VaultGreenSubtle.copy(alpha = 0.3f))
+                                    .clip(androidx.compose.ui.graphics.RectangleShape)
+                                    .background(NeonGlassSurface)
                                     .padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box(
                                     modifier = Modifier
                                         .size(40.dp)
-                                        .clip(CircleShape)
-                                        .background(VaultGreen.copy(alpha = 0.2f)),
+                                        .clip(androidx.compose.ui.graphics.RectangleShape)
+                                        .background(NeonGreen.copy(alpha = 0.2f)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.CheckCircle,
                                         contentDescription = null,
-                                        tint = VaultGreen
+                                        tint = NeonGreen
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
@@ -304,7 +305,7 @@ fun DownloadScreen(
                                     Text(
                                         text = "Downloaded successfully!",
                                         style = MaterialTheme.typography.titleSmall,
-                                        color = VaultGreen
+                                        color = NeonGreen
                                     )
                                     Text(
                                         text = progress.file.fileName,
@@ -318,7 +319,7 @@ fun DownloadScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .clip(androidx.compose.ui.graphics.RectangleShape)
                                     .background(DestructiveRed.copy(alpha = 0.1f))
                                     .padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically
@@ -326,7 +327,7 @@ fun DownloadScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(40.dp)
-                                        .clip(CircleShape)
+                                        .clip(androidx.compose.ui.graphics.RectangleShape)
                                         .background(DestructiveRed.copy(alpha = 0.2f)),
                                     contentAlignment = Alignment.Center
                                 ) {

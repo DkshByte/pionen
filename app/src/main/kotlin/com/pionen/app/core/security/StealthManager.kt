@@ -59,7 +59,7 @@ class StealthManager @Inject constructor(
      */
     val currentDisguise: Flow<Disguise> = context.stealthStore.data.map { prefs ->
         val aliasName = prefs[CURRENT_DISGUISE_KEY] ?: ALIAS_DEFAULT
-        Disguise.values().find { it.alias == aliasName } ?: Disguise.DEFAULT
+        Disguise.entries.find { it.alias == aliasName } ?: Disguise.DEFAULT
     }
     
     /**
@@ -108,5 +108,5 @@ class StealthManager @Inject constructor(
     /**
      * Get all available disguises.
      */
-    fun getAvailableDisguises(): List<Disguise> = Disguise.values().toList()
+    fun getAvailableDisguises(): List<Disguise> = Disguise.entries
 }

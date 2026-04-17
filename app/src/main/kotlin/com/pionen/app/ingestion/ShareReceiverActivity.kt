@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
+import com.pionen.app.core.security.LockManager
+import com.pionen.app.core.security.LockState
 import com.pionen.app.core.security.ScreenshotShield
 import com.pionen.app.core.vault.VaultEngine
 import com.pionen.app.ui.theme.PionenTheme
@@ -39,6 +41,9 @@ class ShareReceiverActivity : ComponentActivity() {
     @Inject
     lateinit var screenshotShield: ScreenshotShield
     
+    @Inject
+    lateinit var lockManager: LockManager
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
@@ -49,6 +54,13 @@ class ShareReceiverActivity : ComponentActivity() {
         
         if (uris.isEmpty()) {
             Toast.makeText(this, "No files to import", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+        
+        // SECURITY: Reject shares when vault is locked
+        if (lockManager.lockState.value is LockState.Locked) {
+            Toast.makeText(this, "Vault is locked. Unlock first to import files.", Toast.LENGTH_LONG).show()
             finish()
             return
         }
@@ -70,16 +82,27 @@ class ShareReceiverActivity : ComponentActivity() {
         }
     }
     
+    @Suppress("DEPRECATION")
     private fun extractUris(): List<Uri> {
         val uris = mutableListOf<Uri>()
         
         when (intent?.action) {
             Intent.ACTION_SEND -> {
-                intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { uris.add(it) }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)?.let { uris.add(it) }
+                } else {
+                    intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { uris.add(it) }
+                }
             }
             Intent.ACTION_SEND_MULTIPLE -> {
-                intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.let { 
-                    uris.addAll(it) 
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.let {
+                        uris.addAll(it)
+                    }
+                } else {
+                    intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.let { 
+                        uris.addAll(it) 
+                    }
                 }
             }
         }

@@ -109,8 +109,10 @@ class CrashHandler private constructor(
     }
 
     private fun clearSensitiveData() {
-        // TODO: Could integrate with SecureBuffer to clear any decrypted content
-        // For now, just run GC to help clear references
-        System.gc()
+        // NOTE: System.gc() does NOT guarantee memory is cleared and provides
+        // no real security benefit. Decrypted content is managed by SecureBuffer
+        // which zeros its backing array on close(). This method exists as a
+        // best-effort hook for future integration (e.g. clearing all open
+        // SecureBuffer instances on crash).
     }
 }

@@ -7,10 +7,14 @@ import android.security.keystore.KeyProperties
 import java.security.KeyStore
 import java.util.UUID
 import javax.crypto.KeyGenerator
+import javax.crypto.Mac
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
 import javax.inject.Inject
 import javax.inject.Singleton
+import android.content.Context
+import android.app.KeyguardManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * KeyManager: Manages all encryption keys using Android Keystore.
@@ -22,11 +26,14 @@ import javax.inject.Singleton
  * - Crypto-shredding: file deletion = key destruction
  */
 @Singleton
-class KeyManager @Inject constructor() {
+class KeyManager @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
     
     companion object {
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
         private const val KEY_ALIAS_PREFIX = "pionen_file_"
+        private const val PIN_MAC_KEY_ALIAS = "pionen_pin_mac"
         private const val KEY_SIZE = 256
     }
     
@@ -77,8 +84,77 @@ class KeyManager @Inject constructor() {
             builder.setIsStrongBoxBacked(true)
         }
         
+        // SECURITY: Prevent catastrophic data loss if user adds a new fingerprint
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            builder.setInvalidatedByBiometricEnrollment(false)
+        }
+        
+        // Bind to Device Lock Screen if available
+        val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        if (keyguardManager.isDeviceSecure) {
+            builder.setUserAuthenticationRequired(true)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                builder.setUserAuthenticationParameters(
+                    300, 
+                    KeyProperties.AUTH_DEVICE_CREDENTIAL or KeyProperties.AUTH_BIOMETRIC_STRONG
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                builder.setUserAuthenticationValidityDurationSeconds(300)
+            }
+        }
+        
         keyGenerator.init(builder.build())
         return keyGenerator.generateKey()
+    }
+    
+    /**
+     * Hardware-bound HMAC wrapper for PIN hashes.
+     * Prevents offline brute-force extraction attacks.
+     */
+    fun hashWithHardwareMac(input: ByteArray): ByteArray {
+        val macKey = try {
+            val key = keyStore.getKey(PIN_MAC_KEY_ALIAS, null) as? SecretKey
+            if (key == null) {
+                // Initialize the hardware MAC key on first use
+                val keyGenerator = KeyGenerator.getInstance(
+                    KeyProperties.KEY_ALGORITHM_HMAC_SHA256,
+                    ANDROID_KEYSTORE
+                )
+                val builder = KeyGenParameterSpec.Builder(
+                    PIN_MAC_KEY_ALIAS,
+                    KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
+                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    builder.setInvalidatedByBiometricEnrollment(false)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    try {
+                        keyGenerator.init(builder.setIsStrongBoxBacked(true).build())
+                        keyGenerator.generateKey()
+                    } catch (e: Exception) {
+                        keyGenerator.init(builder.setIsStrongBoxBacked(false).build())
+                        keyGenerator.generateKey()
+                    }
+                } else {
+                    keyGenerator.init(builder.build())
+                    keyGenerator.generateKey()
+                }
+            } else {
+                key
+            }
+        } catch (e: Exception) {
+            null
+        }
+        
+        if (macKey != null) {
+            val mac = Mac.getInstance("HmacSHA256")
+            mac.init(macKey)
+            return mac.doFinal(input)
+        }
+        // SECURITY: Never silently degrade — without hardware HMAC, the PIN hash
+        // becomes a pure PBKDF2 output that is trivially brute-forceable offline.
+        throw SecurityException("Hardware-backed MAC unavailable — cannot securely hash PIN")
     }
     
     /**
@@ -131,7 +207,7 @@ class KeyManager @Inject constructor() {
         val aliases = keyStore.aliases().toList()
         
         for (alias in aliases) {
-            if (alias.startsWith(KEY_ALIAS_PREFIX)) {
+            if (alias.startsWith(KEY_ALIAS_PREFIX) || alias == PIN_MAC_KEY_ALIAS) {
                 try {
                     keyStore.deleteEntry(alias)
                     destroyed++

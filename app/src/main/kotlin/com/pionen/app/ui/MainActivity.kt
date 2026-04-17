@@ -9,13 +9,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.rememberNavController
+import com.pionen.app.core.CompatibilityChecker
 import com.pionen.app.core.security.LockManager
 import com.pionen.app.core.security.LockState
 import com.pionen.app.core.security.PanicManager
@@ -26,7 +28,7 @@ import com.pionen.app.ui.navigation.Screen
 import com.pionen.app.ui.theme.PionenTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.isActive
 import javax.inject.Inject
 
 /**
@@ -48,6 +50,9 @@ class MainActivity : FragmentActivity() {
     @Inject
     lateinit var panicManager: PanicManager
 
+    @Inject
+    lateinit var compatibilityChecker: CompatibilityChecker
+
     /**
      * Guard against onStop re-locking the vault during the very first
      * navigation away from the lock screen. Set to true right before we
@@ -64,6 +69,26 @@ class MainActivity : FragmentActivity() {
         // Start shake detection - inject lockManager so it won't fire during lock screen
         shakeDetector.lockManager = lockManager
         shakeDetector.start()
+
+        // Run compatibility check synchronously — it's fast (key gen) and must
+        // block the UI before anything security-related is shown.
+        val compatResult = compatibilityChecker.check()
+        
+        if (panicManager.detectTampering()) {
+            setContent {
+                PionenTheme {
+                    androidx.compose.material3.Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        com.pionen.app.ui.screens.IncompatibleDeviceScreen(
+                            failedReasons = listOf("Security Lockdown: Host OS represents a compromised environment (Root/Debugger active).")
+                        )
+                    }
+                }
+            }
+            return
+        }
         
         setContent {
             PionenTheme {
@@ -71,40 +96,72 @@ class MainActivity : FragmentActivity() {
                 val navController = rememberNavController()
                 val shakeTriggered by shakeDetector.shakeTriggered.collectAsState()
                 
-                // Handle shake-to-wipe
-                LaunchedEffect(shakeTriggered) {
-                    if (shakeTriggered) {
-                        // Trigger panic wipe
-                        panicManager.executePanicWipe()
-                        shakeDetector.resetTrigger()
-                        
-                        // Short delay for wipe to complete
-                        delay(500)
-                        
-                        // Force close the app
-                        finishAffinity()
-                        Process.killProcess(Process.myPid())
+                var initialRoute by remember { mutableStateOf<String?>(null) }
+
+                LaunchedEffect(compatResult) {
+                    if (compatResult.isCompatible) {
+                        val configured = lockManager.hasPinConfigured()
+                        initialRoute = if (configured) Screen.Lock.route else Screen.Setup.route
+                    } else {
+                        initialRoute = Screen.Incompatible.route
                     }
                 }
                 
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    PionenNavHost(
-                        navController = navController,
-                        startDestination = Screen.Lock.route,
-                        onNavigatingToVault = { isNavigatingAfterUnlock = true },
+                // Enforce lock state across the entire app
+                LaunchedEffect(lockState, initialRoute) {
+                    if (initialRoute == null) return@LaunchedEffect
+                    
+                    if (lockState is LockState.Locked && compatResult.isCompatible) {
+                        val currentRoute = navController.currentDestination?.route
+                        if (currentRoute != Screen.Lock.route && currentRoute != Screen.Incompatible.route && currentRoute != Screen.Setup.route) {
+                            navController.navigate(Screen.Lock.route) {
+                                popUpTo(0) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                }
+                
+                // Periodic auto-lock check
+                LaunchedEffect(Unit) {
+                    while (isActive) {
+                        lockManager.checkInactivityLock()
+                        delay(15_000) // Check every 15 seconds
+                    }
+                }
+                
+                // Handle shake-to-wipe — navigate to confirmation screen, NEVER instant-wipe
+                LaunchedEffect(shakeTriggered) {
+                    if (shakeTriggered && compatResult.isCompatible) {
+                        val currentRoute = navController.currentDestination?.route
+                        // Only trigger if vault is open (not on lock/setup) and not already confirming
+                        if (currentRoute != Screen.Lock.route && 
+                            currentRoute != Screen.Setup.route &&
+                            currentRoute != Screen.PanicConfirm.route) {
+                            navController.navigate(Screen.PanicConfirm.route) {
+                                launchSingleTop = true
+                            }
+                        }
+                        shakeDetector.resetTrigger()
+                    }
+                }
+                
+                if (initialRoute != null) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        PionenNavHost(
+                            navController = navController,
+                            startDestination = initialRoute!!,
+                            incompatibleReasons = compatResult.failedReasons,
+                            onNavigatingToVault = { isNavigatingAfterUnlock = true },
                         onVaultSettled = { isNavigatingAfterUnlock = false }
                     )
+                    }
+                } else {
+                    Box(modifier = Modifier.fillMaxSize().background(com.pionen.app.ui.theme.DarkBackground))
                 }
-            }
-        }
-        
-        // Monitor lifecycle for auto-lock
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Called when app comes to foreground
             }
         }
     }

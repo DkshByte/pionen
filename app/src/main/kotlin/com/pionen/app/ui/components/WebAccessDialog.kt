@@ -65,19 +65,19 @@ fun WebAccessDialog(
             modifier = Modifier
                 .fillMaxWidth(0.92f)
                 .shadow(
-                    elevation = 32.dp,
-                    shape = RoundedCornerShape(24.dp),
-                    ambientColor = VaultGreen.copy(alpha = 0.1f),
-                    spotColor = VaultGreen.copy(alpha = 0.2f)
+                    elevation = 40.dp,
+                    shape = androidx.compose.ui.graphics.RectangleShape,
+                    ambientColor = NeonGreen.copy(alpha = 0.3f),
+                    spotColor = ElectricCyan.copy(alpha = 0.4f)
                 ),
             shape = RoundedCornerShape(24.dp),
-            color = DarkCard,
+            color = DarkCard.copy(alpha = 0.95f),
             border = androidx.compose.foundation.BorderStroke(
-                width = 1.dp,
+                width = 1.5.dp,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        GlassBorder,
-                        GlassBorder.copy(alpha = 0.3f)
+                        NeonGlassBorder,
+                        ElectricCyan.copy(alpha = 0.1f)
                     )
                 )
             )
@@ -177,8 +177,9 @@ private fun StoppedContent(onStart: () -> Unit) {
     ) {
         // Icon
         Surface(
-            shape = CircleShape,
-            color = VaultGreen.copy(alpha = 0.1f),
+            shape = androidx.compose.ui.graphics.RectangleShape,
+            color = NeonGlassSurface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, NeonGlassBorder),
             modifier = Modifier.size(80.dp)
         ) {
             Box(
@@ -226,17 +227,18 @@ private fun StoppedContent(onStart: () -> Unit) {
             onClick = onStart,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(12.dp),
+                .height(56.dp)
+                .shadow(elevation = 12.dp, spotColor = NeonGreen.copy(alpha = 0.5f), shape = androidx.compose.ui.graphics.RectangleShape),
+            shape = androidx.compose.ui.graphics.RectangleShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = VaultGreen,
-                contentColor = Color.Black
+                containerColor = NeonGreenDark,
+                contentColor = Color.White
             )
         ) {
             Icon(
                 Icons.Default.PlayArrow,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
@@ -284,7 +286,7 @@ private fun RunningContent(
         // QR Code
         qrCodeBitmap?.let { bitmap ->
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = androidx.compose.ui.graphics.RectangleShape,
                 color = Color.White,
                 modifier = Modifier.size(200.dp)
             ) {
@@ -353,14 +355,14 @@ private fun RunningContent(
             onClick = onStop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(12.dp),
+                .height(52.dp),
+            shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = Color(0xFFF87171)
+                contentColor = DestructiveRed
             ),
             border = androidx.compose.foundation.BorderStroke(
-                1.dp,
-                Color(0xFFF87171).copy(alpha = 0.5f)
+                1.5.dp,
+                DestructiveRed.copy(alpha = 0.6f)
             )
         ) {
             Icon(
@@ -388,7 +390,7 @@ private fun ErrorContent(
         modifier = Modifier.padding(vertical = 20.dp)
     ) {
         Surface(
-            shape = CircleShape,
+            shape = androidx.compose.ui.graphics.RectangleShape,
             color = Color(0xFFF87171).copy(alpha = 0.1f),
             modifier = Modifier.size(64.dp)
         ) {
@@ -442,7 +444,7 @@ private fun SecurityBadge(
     text: String
 ) {
     Surface(
-        shape = RoundedCornerShape(8.dp),
+        shape = androidx.compose.ui.graphics.RectangleShape,
         color = VaultGreen.copy(alpha = 0.08f),
         border = androidx.compose.foundation.BorderStroke(
             1.dp,

@@ -128,7 +128,7 @@ class SecureBufferDataSource(
     private var bytesRemaining = 0L
     
     override fun open(dataSpec: DataSpec): Long {
-        data = buffer.getData()
+        data = buffer.getDataDirect()
         readPosition = dataSpec.position.toInt()
         bytesRemaining = if (dataSpec.length != -1L) {
             dataSpec.length

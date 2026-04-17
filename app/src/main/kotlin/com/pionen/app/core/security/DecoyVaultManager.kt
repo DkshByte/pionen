@@ -14,6 +14,7 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.pionen.app.core.crypto.KeyManager
 
 private val Context.decoyDataStore by preferencesDataStore(name = "decoy_vault_prefs")
 
@@ -28,7 +29,9 @@ private val Context.decoyDataStore by preferencesDataStore(name = "decoy_vault_p
  */
 @Singleton
 class DecoyVaultManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val lockManager: LockManager,
+    private val keyManager: KeyManager
 ) {
     
     companion object {
@@ -50,9 +53,18 @@ class DecoyVaultManager @Inject constructor(
     
     /**
      * Enable decoy vault with a separate PIN.
+     * 
+     * @throws IllegalArgumentException if the decoy PIN matches the real vault PIN.
      */
     suspend fun enableDecoyVault(decoyPin: String) {
         require(decoyPin.length == 6 && decoyPin.all { it.isDigit() }) { "Decoy PIN must be 6 digits" }
+        
+        // SECURITY: Reject if the decoy PIN matches the real vault PIN.
+        // This prevents a collision that would permanently route the user
+        // into the decoy vault, locking them out of their real data.
+        require(!lockManager.verifyPinWithoutUnlock(decoyPin)) {
+            "Decoy PIN must be different from the real vault PIN"
+        }
         
         // Generate salt
         val salt = ByteArray(32)
@@ -95,7 +107,12 @@ class DecoyVaultManager @Inject constructor(
         val salt = saltHex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
         val inputHash = hashPinPbkdf2(pin, salt)
         
-        if (inputHash == storedHash) {
+        val isValid = java.security.MessageDigest.isEqual(
+            inputHash.toByteArray(Charsets.UTF_8),
+            storedHash.toByteArray(Charsets.UTF_8)
+        )
+        
+        if (isValid) {
             // Log covert access (increment counter)
             recordDecoyAccess()
             return true
@@ -123,14 +140,15 @@ class DecoyVaultManager @Inject constructor(
     }
     
     /**
-     * PBKDF2 hashing with SHA-256.
+     * PBKDF2 hashing with SHA-256 + Hardware HMAC.
      */
     private fun hashPinPbkdf2(pin: String, salt: ByteArray): String {
         val spec = PBEKeySpec(pin.toCharArray(), salt, PBKDF2_ITERATIONS, KEY_LENGTH)
         val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-        val hash = factory.generateSecret(spec).encoded
+        val pbkdf2Hash = factory.generateSecret(spec).encoded
         spec.clearPassword()
-        return hash.joinToString("") { "%02x".format(it) }
+        val protectedHash = keyManager.hashWithHardwareMac(pbkdf2Hash)
+        return protectedHash.joinToString("") { "%02x".format(it) }
     }
 }
 

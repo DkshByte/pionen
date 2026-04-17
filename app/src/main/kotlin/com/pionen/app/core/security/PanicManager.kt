@@ -80,26 +80,12 @@ class PanicManager @Inject constructor(
         }
     }
     
-    /**
-     * Check for panic trigger conditions.
-     */
-    fun checkPanicTriggers(config: PanicConfig) {
-        if (config.onFailedAuthThreshold) {
-            // This would be called by LockManager when threshold is reached
-        }
-        
-        if (config.onTamperDetection) {
-            if (detectTampering()) {
-                // Auto-wipe on tampering
-            }
-        }
-    }
     
     /**
      * Detect tampering (root, debug, etc.)
      * Note: Determined attackers can bypass these checks.
      */
-    private fun detectTampering(): Boolean {
+    fun detectTampering(): Boolean {
         return isDeviceRooted() || isDebuggerAttached()
     }
     
@@ -167,13 +153,3 @@ sealed class PanicState {
     data class Complete(val result: PanicWipeResult) : PanicState()
     data class Error(val message: String) : PanicState()
 }
-
-/**
- * Configuration for panic triggers.
- */
-data class PanicConfig(
-    val onFailedAuthThreshold: Boolean = true,
-    val failedAuthCount: Int = 5,
-    val onTamperDetection: Boolean = false,
-    val onStoragePressure: Boolean = false
-)

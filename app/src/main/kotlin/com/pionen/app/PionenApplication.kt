@@ -1,14 +1,18 @@
 package com.pionen.app
 
 import android.app.Application
-import android.os.Build
 import android.os.StrictMode
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import com.pionen.app.core.CrashHandler
+import com.pionen.app.core.security.LockManager
 import dagger.hilt.android.HiltAndroidApp
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
+import javax.inject.Inject
 
 /**
  * Pionen Application class.
@@ -20,10 +24,13 @@ import dagger.hilt.android.HiltAndroidApp
  * - Secure image loading (memory cache only)
  */
 @HiltAndroidApp
-class PionenApplication : Application(), ImageLoaderFactory {
+class PionenApplication : Application(), ImageLoaderFactory, DefaultLifecycleObserver {
+    
+    @Inject
+    lateinit var lockManager: LockManager
     
     override fun onCreate() {
-        super.onCreate()
+        super<Application>.onCreate()
         
         // Install global crash handler
         CrashHandler.install(this)
@@ -35,6 +42,15 @@ class PionenApplication : Application(), ImageLoaderFactory {
         if (BuildConfig.ENABLE_LOGGING) {
             enableStrictMode()
         }
+        
+        // SECURITY: Automatically lock vault when app goes to background
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+    }
+    
+    override fun onStop(owner: LifecycleOwner) {
+        super.onStop(owner)
+        // App is backgrounded — force immediate lock
+        lockManager.lockVault()
     }
     
     /**

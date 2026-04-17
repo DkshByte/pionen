@@ -6,6 +6,9 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import java.util.UUID
 
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+
 /**
  * Room database for vault metadata.
  * This database is encrypted using SQLCipher.
@@ -13,12 +16,20 @@ import java.util.UUID
  */
 @Database(
     entities = [VaultFile::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(UUIDConverter::class)
 abstract class VaultDatabase : RoomDatabase() {
     abstract fun vaultFileDao(): VaultFileDao
+    
+    companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE vault_files ADD COLUMN is_decoy INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+    }
 }
 
 /**

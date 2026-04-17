@@ -23,6 +23,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.foundation.Image
+import android.graphics.BitmapFactory
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
@@ -49,10 +52,12 @@ fun SettingsScreen(
 ) {
     val vaultStats by viewModel.vaultStats.collectAsState()
     val isHardwareBacked by viewModel.isHardwareBacked.collectAsState()
+    val isStrongBoxBacked by viewModel.isStrongBoxBacked.collectAsState()
     val isPinConfigured by viewModel.isPinConfigured.collectAsState()
     val currentDisguise by viewModel.currentDisguise.collectAsState()
     var showStealthDialog by remember { mutableStateOf(false) }
     var showPinDialog by remember { mutableStateOf(false) }
+    var showHardwareDialog by remember { mutableStateOf(false) }
     var pinInput by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
@@ -122,11 +127,24 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // ── Security Status Card
+                    val protectionValue = when {
+                        isStrongBoxBacked -> "STRONGBOX"
+                        isHardwareBacked -> "TEE"
+                        else -> "SOFTWARE"
+                    }
+                    val protectionColor = if (isStrongBoxBacked) NeonGreen else if (isHardwareBacked) ElectricCyan else DestructiveRed
+                    
                     PixelCard {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                             PixelSectionHeader(Icons.Default.Shield, "SECURITY STATUS", NeonGreen)
 
-                            PixelStatusRow("Hardware Protection", if (isHardwareBacked) "ACTIVE" else "SOFTWARE ONLY", isHardwareBacked, NeonGreen)
+                            PixelClickRow(
+                                title = "Hardware Protection",
+                                subtitle = "$protectionValue VERIFIED",
+                                isActive = isHardwareBacked || isStrongBoxBacked,
+                                icon = Icons.Default.Security,
+                                onClick = { showHardwareDialog = true }
+                            )
                             PixelDivider()
                             PixelStatusRow("Encryption", "AES-256-GCM", true, NeonGreen)
                             PixelDivider()
@@ -195,17 +213,33 @@ fun SettingsScreen(
                     val isTorEnabled by viewModel.isTorEnabled.collectAsState()
                     val vpnStatus by viewModel.vpnStatus.collectAsState()
 
-                    com.pionen.app.ui.components.TorSettingsCard(
-                        connectionState = torConnectionState,
-                        bootstrapProgress = torBootstrapProgress,
-                        isEnabled = isTorEnabled,
-                        onToggle = { viewModel.toggleTor() }
-                    )
+                    PixelCard {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            PixelSectionHeader(Icons.Default.Public, "NETWORK PRIVACY", NeonGreen)
 
-                    com.pionen.app.ui.components.VpnStatusCard(
-                        vpnStatus = vpnStatus,
-                        onRefresh = { viewModel.refreshVpnStatus() }
-                    )
+                            PixelToggleRow(
+                                title = "Onion Routing (Tor)",
+                                subtitle = when {
+                                    !isTorEnabled -> "DISABLED"
+                                    torConnectionState is com.pionen.app.core.network.TorConnectionState.Connected -> "CONNECTED VIA TOR"
+                                    torConnectionState is com.pionen.app.core.network.TorConnectionState.Connecting -> "BOOTSTRAPPING ${torBootstrapProgress}%..."
+                                    else -> "DISCONNECTED"
+                                },
+                                checked = isTorEnabled,
+                                onCheckedChange = { viewModel.toggleTor() }
+                            )
+                            
+                            PixelDivider()
+                            
+                            PixelClickRow(
+                                title = "Device VPN",
+                                subtitle = if (vpnStatus is com.pionen.app.core.network.VpnStatus.Connected) "VPN SECURE TUNNEL ACTIVE" else "NO VPN DETECTED",
+                                isActive = vpnStatus is com.pionen.app.core.network.VpnStatus.Connected,
+                                icon = Icons.Default.VpnKey,
+                                onClick = { viewModel.refreshVpnStatus() }
+                            )
+                        }
+                    }
 
                     // ── Advanced Security Card
                     PixelAdvancedSecurityCard(viewModel = viewModel, scope = scope)
@@ -257,6 +291,44 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+
+    // Hardware Security Dialog
+    if (showHardwareDialog) {
+        AlertDialog(
+            onDismissRequest = { showHardwareDialog = false },
+            containerColor = DarkCard,
+            shape = RoundedCornerShape(2.dp),
+            title = { Text("HARDWARE SECURITY", style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 2.sp), color = NeonGreen) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Pionen isolates cryptographic keys in dedicated hardware chips, protecting them even if the device is rooted.", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), color = TextSecondary)
+                    
+                    val boxColor = if (isStrongBoxBacked) NeonGreen else if (isHardwareBacked) ElectricCyan else DestructiveRed
+                    Row(
+                        modifier = Modifier.background(boxColor.copy(alpha = 0.08f)).border(1.dp, boxColor.copy(alpha = 0.3f)).padding(10.dp),
+                        verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.Security, null, tint = boxColor, modifier = Modifier.size(16.dp))
+                        Column {
+                            Text(when {
+                                isStrongBoxBacked -> "STRONGBOX VERIFIED"
+                                isHardwareBacked -> "TEE VERIFIED"
+                                else -> "NO HARDWARE PROTECTION"
+                            }, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold), color = boxColor)
+                            Text(when {
+                                isStrongBoxBacked -> "Your encryption keys are protected by a dedicated physical security chip (e.g., Google Titan M), providing the maximum level of tamper resistance."
+                                isHardwareBacked -> "Your encryption keys are isolated using ARM TrustZone (TEE), completely separate from the main Android OS."
+                                else -> "Your keys are stored in software only and could be extracted on rooted devices."
+                            }, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace), color = TextSecondary, modifier = Modifier.padding(top = 4.dp))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showHardwareDialog = false }) { Text("CLOSE", style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace), color = TextSecondary) }
+            }
+        )
     }
 
     // Stealth Dialog
@@ -397,6 +469,18 @@ private fun PixelAdvancedSecurityCard(viewModel: SettingsViewModel, scope: kotli
     var showDecoyPinDialog by remember { mutableStateOf(false) }
     var showIntruderCapturesDialog by remember { mutableStateOf(false) }
     var decoyPinInput by remember { mutableStateOf("") }
+    var decoyPinError by remember { mutableStateOf<String?>(null) }
+    
+    val currentDisguise by viewModel.currentDisguise.collectAsState()
+    var showStealthDialog by remember { mutableStateOf(false) }
+
+    val cameraPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            scope.launch { viewModel.enableIntruderCapture(2) }
+        }
+    }
 
     PixelCard {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -406,7 +490,7 @@ private fun PixelAdvancedSecurityCard(viewModel: SettingsViewModel, scope: kotli
                 title = "Decoy Vault",
                 subtitle = if (isDecoyEnabled) "ACTIVE · $decoyAccessCount accesses" else "Fake vault with alt PIN",
                 checked = isDecoyEnabled,
-                onToggle = { if (!isDecoyEnabled) { decoyPinInput = ""; showDecoyPinDialog = true } else scope.launch { viewModel.disableDecoyVault() } },
+                onToggle = { if (!isDecoyEnabled) { decoyPinInput = ""; decoyPinError = null; showDecoyPinDialog = true } else scope.launch { viewModel.disableDecoyVault() } },
                 icon = Icons.Default.ContentCopy,
                 isActive = isDecoyEnabled
             )
@@ -417,9 +501,25 @@ private fun PixelAdvancedSecurityCard(viewModel: SettingsViewModel, scope: kotli
                 title = "Intruder Photo",
                 subtitle = if (isIntruderCaptureEnabled) "ACTIVE · ${intruderCaptures.size} captures" else "Photo on failed unlock",
                 checked = isIntruderCaptureEnabled,
-                onToggle = { scope.launch { if (!isIntruderCaptureEnabled) viewModel.enableIntruderCapture(2) else viewModel.disableIntruderCapture() } },
+                onToggle = { 
+                    if (!isIntruderCaptureEnabled) {
+                        cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                    } else {
+                        scope.launch { viewModel.disableIntruderCapture() }
+                    }
+                },
                 icon = Icons.Default.CameraAlt,
                 isActive = isIntruderCaptureEnabled
+            )
+            
+            PixelDivider()
+
+            PixelClickRow(
+                title = "App Stealth Mode",
+                subtitle = if (currentDisguise == com.pionen.app.core.security.StealthManager.Disguise.DEFAULT) "Launch icon: Pionen" else "DISGUISED AS: ${currentDisguise.displayName.uppercase(java.util.Locale.US)}",
+                isActive = currentDisguise != com.pionen.app.core.security.StealthManager.Disguise.DEFAULT,
+                icon = Icons.Default.VisibilityOff,
+                onClick = { showStealthDialog = true }
             )
 
             if (intruderCaptures.isNotEmpty()) {
@@ -465,19 +565,37 @@ private fun PixelAdvancedSecurityCard(viewModel: SettingsViewModel, scope: kotli
                     }
                     OutlinedTextField(
                         value = decoyPinInput,
-                        onValueChange = { if (it.length <= 6 && it.all { c -> c.isDigit() }) decoyPinInput = it },
+                        onValueChange = { if (it.length <= 6 && it.all { c -> c.isDigit() }) { decoyPinInput = it; decoyPinError = null } },
                         label = { Text("6-Digit Decoy PIN", color = TextSecondary, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace)) },
                         singleLine = true,
+                        isError = decoyPinError != null,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(2.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = WarningOrange, unfocusedBorderColor = PixelBorderBright, focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary, cursorColor = WarningOrange)
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = WarningOrange, unfocusedBorderColor = PixelBorderBright, focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary, cursorColor = WarningOrange, errorBorderColor = DestructiveRed)
                     )
+                    // Show collision error
+                    if (decoyPinError != null) {
+                        Row(
+                            modifier = Modifier.background(DestructiveRed.copy(alpha = 0.1f)).border(1.dp, DestructiveRed.copy(alpha = 0.4f)).padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.Warning, null, tint = DestructiveRed, modifier = Modifier.size(16.dp))
+                            Text(decoyPinError!!, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace), color = DestructiveRed)
+                        }
+                    }
                 }
             },
             confirmButton = {
                 Button(
-                    onClick = { scope.launch { viewModel.enableDecoyVault(decoyPinInput); showDecoyPinDialog = false } },
+                    onClick = { scope.launch {
+                        val success = viewModel.enableDecoyVault(decoyPinInput)
+                        if (success) {
+                            showDecoyPinDialog = false
+                        } else {
+                            decoyPinError = "Decoy PIN cannot match your real PIN"
+                        }
+                    } },
                     enabled = decoyPinInput.length == 6,
                     shape = RoundedCornerShape(2.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = WarningOrange, disabledContainerColor = WarningOrange.copy(alpha = 0.3f))
@@ -485,6 +603,49 @@ private fun PixelAdvancedSecurityCard(viewModel: SettingsViewModel, scope: kotli
             },
             dismissButton = {
                 TextButton(onClick = { showDecoyPinDialog = false }) { Text("Cancel", style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace), color = TextSecondary) }
+            }
+        )
+    }
+
+    // Stealth Mode Dialog
+    if (showStealthDialog) {
+        AlertDialog(
+            onDismissRequest = { showStealthDialog = false },
+            containerColor = DarkCard,
+            shape = RoundedCornerShape(2.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.VisibilityOff, null, tint = WarningOrange)
+                    Text("STEALTH MODE", style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 2.sp), color = TextPrimary)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text("Change the app icon and name to disguise it on your device.", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), color = TextSecondary)
+                    
+                    com.pionen.app.core.security.StealthManager.Disguise.entries.forEach { disguise ->
+                        val isSelected = currentDisguise == disguise
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(if (isSelected) NeonGreen.copy(alpha = 0.1f) else DarkSurfaceVariant)
+                                .border(1.dp, if (isSelected) NeonGreen else PixelBorderBright)
+                                .clickable { 
+                                    scope.launch { viewModel.switchDisguise(disguise) }
+                                    showStealthDialog = false
+                                }
+                                .padding(12.dp)
+                        ) {
+                            Column {
+                                Text(disguise.displayName, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold), color = if (isSelected) NeonGreen else TextPrimary)
+                                Text(disguise.description, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace), color = TextSecondary)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showStealthDialog = false }) { Text("Close", style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace), color = TextSecondary) }
             }
         )
     }
@@ -504,9 +665,30 @@ private fun PixelAdvancedSecurityCard(viewModel: SettingsViewModel, scope: kotli
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(formatDateTime(capture.timestamp), style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), color = TextPrimary)
-                                Text("Failed login attempt", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace), color = TextSecondary)
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                                val bitmap = remember(capture.file.absolutePath) {
+                                    try {
+                                        BitmapFactory.decodeFile(capture.file.absolutePath)?.asImageBitmap()
+                                    } catch (e: Exception) { null }
+                                }
+                                
+                                if (bitmap != null) {
+                                    Image(
+                                        bitmap = bitmap,
+                                        contentDescription = "Intruder Photo",
+                                        modifier = Modifier.size(60.dp).background(Color.Black).border(1.dp, PixelBorderBright),
+                                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                    )
+                                } else {
+                                    Box(modifier = Modifier.size(60.dp).background(Color.DarkGray).border(1.dp, PixelBorderBright), contentAlignment = Alignment.Center) {
+                                        Icon(Icons.Default.Person, "No Photo", tint = Color.Gray)
+                                    }
+                                }
+                                
+                                Column {
+                                    Text(formatDateTime(capture.timestamp), style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), color = TextPrimary)
+                                    Text("Failed unlock attempt", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace), color = TextSecondary)
+                                }
                             }
                             IconButton(onClick = { viewModel.deleteIntruderCapture(capture) }) {
                                 Icon(Icons.Default.Delete, "Delete", tint = DestructiveRed)
@@ -577,7 +759,7 @@ private fun PixelStealthDialog(currentDisguise: StealthManager.Disguise, onDisgu
         title = { Text("APP DISGUISE", style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, letterSpacing = 2.sp), color = ElectricCyan) },
         text = {
             Column(modifier = Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                StealthManager.Disguise.values().forEach { disguise ->
+                StealthManager.Disguise.entries.forEach { disguise ->
                     val isSelected = currentDisguise == disguise
                     Row(
                         modifier = Modifier

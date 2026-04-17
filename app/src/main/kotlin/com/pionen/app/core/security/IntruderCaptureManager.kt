@@ -3,42 +3,23 @@ package com.pionen.app.core.security
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.ImageFormat
-import android.graphics.Matrix
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraManager
-import android.util.Log
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
-import androidx.camera.lifecycle.ProcessCameraProvider
+import com.pionen.app.core.SecureLogger
 import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.LifecycleOwner
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 private val Context.intruderDataStore by preferencesDataStore(name = "intruder_capture_prefs")
 
@@ -53,7 +34,9 @@ private val Context.intruderDataStore by preferencesDataStore(name = "intruder_c
  */
 @Singleton
 class IntruderCaptureManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val secureCameraController: com.pionen.app.ingestion.SecureCameraController,
+    private val fileEncryptor: com.pionen.app.core.crypto.FileEncryptor
 ) {
     
     companion object {
@@ -66,7 +49,9 @@ class IntruderCaptureManager @Inject constructor(
         private const val INTRUDER_DIR = ".intruder_captures"
     }
     
-    private var imageCapture: ImageCapture? = null
+    // TODO: Real camera capture not yet implemented.
+    //       When implementing, use CameraX ImageCapture to silently grab a
+    //       front-camera frame and encrypt it via VaultEngine before writing.
     
     /**
      * Check if intruder capture is enabled.
@@ -121,39 +106,82 @@ class IntruderCaptureManager @Inject constructor(
                     context, 
                     Manifest.permission.CAMERA
                 ) != PackageManager.PERMISSION_GRANTED) {
-                Log.w(TAG, "Camera permission not granted, cannot capture intruder")
+                SecureLogger.w(TAG, "Camera permission not granted, cannot capture intruder")
                 return
             }
             
             try {
                 captureIntruderPhoto()
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to capture intruder photo", e)
+                SecureLogger.e(TAG, "Failed to capture intruder photo")
             }
         }
     }
     
-    /**
-     * Silently capture front camera photo.
-     */
     private suspend fun captureIntruderPhoto() = withContext(Dispatchers.Main) {
-        // This is a simplified version - in production would use CameraX
-        // For now, we'll create a placeholder that can be expanded
-        
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val filename = "intruder_$timestamp.enc"
-        val file = File(getIntruderDir(), filename)
         
-        // Increment capture count
-        context.intruderDataStore.edit { prefs ->
-            val count = (prefs[KEY_TOTAL_CAPTURES] ?: 0) + 1
-            prefs[KEY_TOTAL_CAPTURES] = count
+        try {
+            val standaloneLifecycleOwner = object : androidx.lifecycle.LifecycleOwner {
+                private val registry = androidx.lifecycle.LifecycleRegistry(this).apply {
+                    currentState = androidx.lifecycle.Lifecycle.State.RESUMED
+                }
+                override val lifecycle: androidx.lifecycle.Lifecycle = registry
+            }
+            
+            // Bind camera invisibly
+            secureCameraController.initialize(
+                standaloneLifecycleOwner,
+                androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA
+            )
+            
+            // Capture raw JPEG bytes securely without triggering the database
+            val jpegBytes = secureCameraController.captureToByteArray()
+            
+            // Derive a deterministic file ID so we can decrypt it later without a DB row
+            val fileName = "intruder_$timestamp.enc"
+            val fileId = UUID.randomUUID()
+            val targetFile = File(getIntruderDir(), fileName)
+            
+            fileEncryptor.encryptToFile(jpegBytes, fileId, targetFile)
+            
+            // Write sidecar with file ID so we can decrypt later
+            java.io.File(getIntruderDir(), "$fileName.id").writeText(fileId.toString())
+            
+            // Increment capture count
+            context.intruderDataStore.edit { prefs ->
+                val count = (prefs[KEY_TOTAL_CAPTURES] ?: 0) + 1
+                prefs[KEY_TOTAL_CAPTURES] = count
+            }
+            
+            SecureLogger.d(TAG, "Intruder attempt recorded and encrypted")
+        } catch (e: Exception) {
+            SecureLogger.e(TAG, "Failed to capture intruder photo via SecureCameraController")
         }
-        
-        // Create placeholder file (actual camera capture would go here)
-        file.writeText("CAPTURE_PLACEHOLDER:$timestamp")
-        
-        Log.d(TAG, "Intruder capture saved: ${file.absolutePath}")
+    }
+    
+    /**
+     * Decrypts an intruder capture for UI auditing.
+     * Reconstructs the exact UUID using the filename hash.
+     */
+    suspend fun decryptCapture(capture: IntruderCapture): ByteArray? = withContext(Dispatchers.IO) {
+        try {
+            // Try decrypting with the UUID stored in the .id sidecar file
+            val idFile = java.io.File(capture.file.parent, capture.filename + ".id")
+            val fileId = if (idFile.exists()) {
+                UUID.fromString(idFile.readText().trim())
+            } else {
+                // Legacy fallback: deterministic UUID from filename
+                UUID.nameUUIDFromBytes(capture.filename.toByteArray())
+            }
+            val buffer = fileEncryptor.decryptToMemory(fileId, capture.file)
+            val bytes = buffer.copyData()
+            buffer.close()
+            bytes
+        } catch (e: Exception) {
+            SecureLogger.e(TAG, "Failed to decrypt intruder capture")
+            null
+        }
     }
     
     /**

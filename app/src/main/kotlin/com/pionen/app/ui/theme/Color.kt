@@ -96,29 +96,12 @@ val IncognitoBackground = Color(0xFF0A0A0A)
 val IncognitoSurface    = Color(0xFF141414)
 val IncognitoAccent     = Color(0xFF00E5FF)
 
-// ─── LEGACY ALIASES ──────────────────────────
+// ─── ALIASES (used across multiple screens) ──
 val VaultGreen        = NeonGreen
 val VaultGreenDark    = NeonGreenDark
 val VaultGreenSubtle  = Color(0xFF0A1A12)
 val VaultGreenGlow    = NeonGreenMuted
-val SecureBlue        = ElectricCyan
-val SecureBlueDark    = ElectricCyanDark
 val AccentPurple      = NeonPurple
 val AccentPurpleDark  = NeonPurpleDark
-
-val PionenBlue         = NeonGreen
-val PionenBlueDark     = NeonGreenDark
-val PionenBlueLight    = NeonGreenLight
-val PionenBlueMuted    = NeonGreenMuted
-val PionenElectric     = ElectricCyan
-val PionenElectricDark = ElectricCyanDark
-val PionenViolet       = NeonPurple
-val PionenVioletDark   = NeonPurpleDark
-
-val GlassSurface       = LiquidGlass
-val GlassSurfaceHover  = LiquidGlassLight
-val BlueSurface        = NeonGlassSurface
-val BlueBorder         = NeonGlassBorder
-
-val FloatingBarBackground  = PixelBarBackground
-val FloatingBarBorder      = PixelBarBorder
+val SecureBlue        = ElectricCyan
+val SecureBlueDark    = ElectricCyanDark

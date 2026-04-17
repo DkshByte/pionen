@@ -40,10 +40,22 @@ class SecureBuffer private constructor(
     }
     
     /**
-     * Get the underlying data.
+     * Get a copy of the underlying data.
      * Throws if buffer is closed.
+     * The returned copy is NOT zeroed on close — caller is responsible.
      */
     fun getData(): ByteArray {
+        check(!isClosed) { "SecureBuffer has been closed" }
+        return data.copyOf()
+    }
+    
+    /**
+     * Get a DIRECT reference to the underlying data (zero-copy).
+     * WARNING: The returned array WILL be zeroed when close() is called.
+     * Only use this when you need the reference to stay in sync with the buffer
+     * lifecycle (e.g. ExoPlayer DataSource) and will NOT access it after close.
+     */
+    fun getDataDirect(): ByteArray {
         check(!isClosed) { "SecureBuffer has been closed" }
         return data
     }
@@ -86,13 +98,3 @@ class SecureBuffer private constructor(
     }
 }
 
-/**
- * Extension function to use SecureBuffer safely.
- */
-inline fun <T> SecureBuffer.use(block: (SecureBuffer) -> T): T {
-    return try {
-        block(this)
-    } finally {
-        close()
-    }
-}

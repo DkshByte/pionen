@@ -11,6 +11,8 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.pionen.app.core.SecureLogger
+import com.pionen.app.core.security.LockManager
+import com.pionen.app.core.security.LockState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
@@ -55,6 +57,9 @@ class WebServerService : Service() {
     @Inject
     lateinit var secureWebServer: SecureWebServer
     
+    @Inject
+    lateinit var lockManager: LockManager
+    
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     
     override fun onCreate() {
@@ -72,6 +77,9 @@ class WebServerService : Service() {
     
     private fun startServerInternal() {
         SecureLogger.i(TAG, "Starting web server service")
+        
+        // SECURITY: Wire lock-state check so API requests are gated
+        secureWebServer.isVaultUnlocked = { lockManager.lockState.value !is LockState.Locked }
         
         val result = secureWebServer.start()
         
@@ -155,7 +163,7 @@ class WebServerService : Service() {
                 stopPendingIntent
             )
             .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("Files accessible at:\n${info.url}\n\nToken: ${info.token.take(8)}..."))
+                .bigText("Files accessible at:\n${info.url}\n\nUse the access token shown in-app to connect."))
             .build()
     }
     

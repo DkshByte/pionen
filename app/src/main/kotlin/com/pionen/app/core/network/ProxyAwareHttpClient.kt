@@ -83,13 +83,19 @@ class ProxyAwareHttpClient @Inject constructor(
 }
 
 /**
- * Custom DNS resolver that routes through Tor to prevent DNS leaks.
- * When using SOCKS5 proxy, we want DNS resolution to happen on the proxy side.
+ * Custom DNS resolver that prevents DNS leaks when using Tor.
+ *
+ * When traffic is routed through a SOCKS5 proxy, DNS resolution must also
+ * go through the proxy to prevent DNS leaks (local DNS queries would reveal
+ * the destination to the ISP). We return 0.0.0.0 so OkHttp skips local
+ * resolution and lets the SOCKS5 proxy handle it server-side.
+ *
+ * Limitation: Some strict SOCKS5 implementations may reject connections
+ * to 0.0.0.0. If that occurs, consider using OkHttp's `SocketFactory`
+ * override or a proper DNS-over-proxy resolver instead.
  */
 class TorDns : okhttp3.Dns {
     override fun lookup(hostname: String): List<java.net.InetAddress> {
-        // Return a placeholder address - actual resolution happens through SOCKS5
-        // The proxy will resolve the hostname
         return listOf(java.net.InetAddress.getByName("0.0.0.0"))
     }
 }

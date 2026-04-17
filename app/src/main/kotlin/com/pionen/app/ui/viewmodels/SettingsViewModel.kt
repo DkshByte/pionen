@@ -44,6 +44,9 @@ class SettingsViewModel @Inject constructor(
     private val _isHardwareBacked = MutableStateFlow(false)
     val isHardwareBacked: StateFlow<Boolean> = _isHardwareBacked
     
+    private val _isStrongBoxBacked = MutableStateFlow(false)
+    val isStrongBoxBacked: StateFlow<Boolean> = _isStrongBoxBacked
+    
     val isPinConfigured: StateFlow<Boolean> = lockManager.isPinConfigured
         .stateIn(
             scope = viewModelScope,
@@ -122,6 +125,7 @@ class SettingsViewModel @Inject constructor(
             if (fileIds.isNotEmpty()) {
                 val info = keyManager.getKeyProtectionInfo(fileIds.first())
                 _isHardwareBacked.value = info.isHardwareBacked
+                _isStrongBoxBacked.value = info.isStrongBoxBacked
             }
             
             // Load security audit data
@@ -140,8 +144,16 @@ class SettingsViewModel @Inject constructor(
     
     // ===== DECOY VAULT =====
     
-    suspend fun enableDecoyVault(decoyPin: String) {
-        decoyVaultManager.enableDecoyVault(decoyPin)
+    /**
+     * Enable decoy vault. Returns false if the decoy PIN matches the real PIN.
+     */
+    suspend fun enableDecoyVault(decoyPin: String): Boolean {
+        return try {
+            decoyVaultManager.enableDecoyVault(decoyPin)
+            true
+        } catch (e: IllegalArgumentException) {
+            false
+        }
     }
     
     suspend fun disableDecoyVault() {

@@ -11,7 +11,9 @@ import com.pionen.app.ui.screens.CameraScreen
 import com.pionen.app.ui.screens.DownloadScreen
 import com.pionen.app.ui.screens.FileViewerScreen
 import com.pionen.app.ui.screens.GalleryScreen
+import com.pionen.app.ui.screens.IncompatibleDeviceScreen
 import com.pionen.app.ui.screens.LockScreen
+import com.pionen.app.ui.screens.SetupScreen
 import com.pionen.app.ui.screens.PanicConfirmScreen
 import com.pionen.app.ui.screens.SecureBrowserScreen
 import com.pionen.app.ui.screens.SettingsScreen
@@ -24,6 +26,7 @@ import com.pionen.app.ui.screens.VaultScreen
 fun PionenNavHost(
     navController: NavHostController,
     startDestination: String,
+    incompatibleReasons: List<String> = emptyList(),
     onNavigatingToVault: () -> Unit = {},
     onVaultSettled: () -> Unit = {}
 ) {
@@ -31,6 +34,22 @@ fun PionenNavHost(
         navController = navController,
         startDestination = startDestination
     ) {
+        composable(Screen.Incompatible.route) {
+            IncompatibleDeviceScreen(failedReasons = incompatibleReasons)
+        }
+        composable(Screen.Setup.route) {
+            SetupScreen(
+                onSetupComplete = {
+                    try {
+                        onNavigatingToVault()
+                        navController.navigate(Screen.Vault.route) {
+                            popUpTo(0) { inclusive = true } // Clear entire backstack on fresh install
+                            launchSingleTop = true
+                        }
+                    } catch (e: Exception) { }
+                }
+            )
+        }
         composable(Screen.Lock.route) {
             LockScreen(
                 onUnlocked = {

@@ -5,6 +5,8 @@ package com.pionen.app.ui.navigation
  */
 sealed class Screen(val route: String) {
     object Lock : Screen("lock")
+    object Setup : Screen("setup")
+    object Incompatible : Screen("incompatible")
     object Vault : Screen("vault")
     object FileViewer : Screen("viewer/{fileId}") {
         fun createRoute(fileId: String) = "viewer/$fileId"
@@ -18,4 +20,3 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object PanicConfirm : Screen("panic_confirm")
 }
-

@@ -38,7 +38,10 @@ data class VaultFile(
     val isImported: Boolean = false, // True if imported from external source
     
     @ColumnInfo(name = "thumbnail_available")
-    val thumbnailAvailable: Boolean = false
+    val thumbnailAvailable: Boolean = false,
+    
+    @ColumnInfo(name = "is_decoy")
+    val isDecoy: Boolean = false
 ) {
     /**
      * Get the encrypted file name (stored on disk).
