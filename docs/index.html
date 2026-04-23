@@ -27,6 +27,9 @@
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap"
     rel="stylesheet" />
 
+  <!-- Umami Analytics — Privacy-first, cookie-free tracking -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="c1588e63-10e6-4751-bfe4-88db4c6cbe03"></script>
+
   <style>
     /* ── Reset ─────────────────────────────────────────────── */
     *,
@@ -1845,6 +1848,7 @@
     }
 
     @media (max-width: 640px) {
+
       .sb-table th,
       .sb-table td {
         padding: 10px 12px;
@@ -2520,7 +2524,8 @@
         <div class="sec-hd" style="margin-bottom:32px;margin-top:80px">
           <span class="tag">Hardware Security</span>
           <h2 style="font-size:clamp(28px,4vw,48px)">Why <span class="g">StrongBox?</span></h2>
-          <p class="sec-sub">Your encryption key never leaves the dedicated security chip — even if the OS is compromised.</p>
+          <p class="sec-sub">Your encryption key never leaves the dedicated security chip — even if the OS is
+            compromised.</p>
         </div>
         <div class="glass" style="padding:0;overflow:hidden">
           <div class="sb-table-wrap">
@@ -2574,7 +2579,9 @@
             </table>
           </div>
           <div class="sb-note" style="padding: 16px 20px; border-top: 1px solid rgba(0,255,136,0.08)">
-            <span>Pionen</span> automatically uses StrongBox when available (Pixel 3+, Samsung S10+). Falls back to TEE on older devices. The bulk AES-GCM file encryption still runs on the main CPU — only the <span>key unwrap</span> step touches StrongBox, so real-world file throughput is unaffected.
+            <span>Pionen</span> automatically uses StrongBox when available (Pixel 3+, Samsung S10+). Falls back to TEE
+            on older devices. The bulk AES-GCM file encryption still runs on the main CPU — only the <span>key
+              unwrap</span> step touches StrongBox, so real-world file throughput is unaffected.
           </div>
         </div>
       </div>
